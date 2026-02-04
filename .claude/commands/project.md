@@ -23,7 +23,7 @@ Parse the arguments to determine the mode:
 If `$ARGUMENTS` is empty:
 
 1. **Read current project** from `tracking/current-project.md`
-   - If file contains a project path (like `consortium.team/api-refactor`), that's the current project
+   - If file contains a project path (like `acme-corp/api-service`), that's the current project
    - If file says "No project currently set" or is empty, there's no current project
 
 2. **List all projects** by scanning the `projects/` directory:

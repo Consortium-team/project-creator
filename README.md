@@ -1,6 +1,75 @@
 # Project Creator
 
-Create well-configured Claude Code projects through guided conversation.
+**The challenge:** Setting up a Claude Code project well requires capturing tacit knowledge — requirements, constraints, architectural decisions, workflow patterns — that lives in your head. Without systematic extraction, projects start incomplete, context gets lost, and teams can't scale what individuals discover.
+
+**The solution:** Project Creator uses reverse prompting to draw out your knowledge through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, commands, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final project — transforming ad-hoc setup into repeatable, scalable project creation.
+
+---
+
+## Prerequisites
+
+### Required
+
+- **Claude Code** — This project is designed to run inside Claude Code
+- **Linear MCP** — The `/plan` and `/build` commands create and read tickets from Linear
+
+### Linear Setup
+
+Project Creator uses [Linear](https://linear.app) as the external memory for implementation plans. The Cultivation and Shaping phases require Linear MCP to be configured.
+
+1. Install the Linear MCP server in your Claude Code configuration
+2. Authenticate with your Linear workspace
+3. Create a Linear project for tracking Project Creator work (or use an existing one)
+
+Without Linear, you can still use the Seeding phase commands (`/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint`), but `/plan` and `/build` will not function.
+
+---
+
+## Workflow Overview
+
+```mermaid
+flowchart TD
+    subgraph Seeding["Phase 1: Seeding"]
+        S1["/intake or /onboard"]
+        S2["/process, /gaps, /checkpoint"]
+    end
+
+    subgraph Cultivation["Phase 2: Cultivation"]
+        C["/plan"]
+    end
+
+    subgraph Shaping["Phase 3: Shaping"]
+        B["/build"]
+    end
+
+    Seeding --> Cultivation --> Shaping
+
+    S1 --> |"Capture requirements"| S2
+    S2 --> |"Process inputs, identify gaps"| C
+    C --> |"Create spec & Linear tickets"| B
+    B --> |"Execute with sub-agents"| done["Configured Project"]
+```
+
+---
+
+## Typical Workflow
+
+```bash
+# 1. Create or set project
+/project new client/project-name
+
+# 2. Seed: Capture requirements
+/intake                    # Interactive requirements gathering
+/process                   # Feed in existing documents
+/gaps                      # Check what's missing
+
+# 3. Cultivate: Plan the build
+/plan                      # Creates spec + Linear tickets
+# Review tickets in Linear, approve when ready
+
+# 4. Shape: Build the project
+/build                     # Executes tickets with sub-agents
+```
 
 ---
 
@@ -13,7 +82,7 @@ Create well-configured Claude Code projects through guided conversation.
 cd project-creator
 
 # Create a new project
-/project new consortium.team/presentation-workflow
+/project new acme-corp/api-service
 
 # Start the intake conversation
 /intake
@@ -44,7 +113,7 @@ git clone <repo-url> projects/acme-corp/existing-api
 
 ```bash
 # Set your project
-/project consortium.team/presentation-workflow
+/project acme-corp/api-service
 
 # See where you left off
 /gaps
@@ -58,7 +127,77 @@ git clone <repo-url> projects/acme-corp/existing-api
 
 ---
 
-## Commands
+## The Three Phases
+
+Project creation happens in phases:
+
+| Phase | Focus | Commands |
+|-------|-------|----------|
+| **Seeding** | Capture requirements and context | `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint` |
+| **Cultivation** | Create implementation plan | `/plan` |
+| **Shaping** | Execute plan with sub-agents | `/build` |
+
+### Phase 1: Seeding
+
+Capture enough context that a well-configured Claude Code project can be generated.
+
+| Command | Purpose |
+|---------|---------|
+| `/intake` | New project reverse prompting |
+| `/onboard` | Existing project analysis |
+| `/process` | Handle external inputs (transcripts, docs) |
+| `/gaps` | Assessment checkpoint |
+| `/checkpoint` | Session capture |
+
+### Phase 2: Cultivation
+
+Consolidate requirements into an actionable implementation plan.
+
+| Command | Purpose |
+|---------|---------|
+| `/plan` | Create implementation spec and Linear tickets |
+
+`/plan` does the following:
+- Creates implementation spec from captured requirements
+- Creates Linear tickets with proper dependencies
+- Creates structured `tickets.yaml` for build automation
+- Requires user approval before proceeding to build
+
+### Phase 3: Shaping
+
+Execute the implementation plan with specialized sub-agents.
+
+| Command | Purpose |
+|---------|---------|
+| `/build` | Execute implementation plan |
+
+`/build` does the following:
+- Reads tickets from `tickets.yaml`
+- Uses `ticket-executor` agent (Opus) to implement each ticket
+- Uses `ticket-verifier` agent (Sonnet) to verify completion
+- Tracks progress in `build-progress.md`
+- Recovers from interruptions automatically
+
+---
+
+## Agent Architecture
+
+During `/build`, work is executed by specialized sub-agents:
+
+| Agent | Role | Model |
+|-------|------|-------|
+| `ticket-executor` | Implements each ticket | Opus |
+| `ticket-verifier` | Verifies completion independently | Sonnet |
+
+This separation ensures:
+- Fresh context per ticket (no degradation)
+- Independent verification (no self-confirmation bias)
+- Cost efficiency (Sonnet for verification)
+- Clear failure attribution
+
+---
+
+## Commands Reference
 
 ### `/project` — Manage Project Context
 
@@ -71,8 +210,8 @@ git clone <repo-url> projects/acme-corp/existing-api
 **Examples:**
 ```
 /project                                    # What am I working on?
-/project consortium.team/writing-companion  # Switch to this project
-/project new 7tworld/api-refactor          # Start a new project
+/project acme-corp/web-app                  # Switch to this project
+/project new startup-inc/api-refactor       # Start a new project
 ```
 
 ### `/intake` — New Project Reverse Prompting
@@ -139,24 +278,63 @@ Run before ending a session. Claude:
 4. Identifies next steps
 5. Prepares handoff notes
 
+### `/plan` — Create Implementation Plan
+
+Consolidates seeding phase outputs into an actionable plan:
+
+1. Reviews all context files (requirements, constraints, decisions)
+2. Creates implementation specification
+3. Generates Linear tickets with dependencies
+4. Creates `tickets.yaml` for build automation
+5. Presents plan for user approval
+
+**Prerequisite:** Complete seeding phase first. Run `/gaps` to verify readiness.
+
+### `/build` — Execute Implementation Plan
+
+Executes the approved plan using sub-agents:
+
+1. Reads tickets from `tickets.yaml`
+2. For each ticket in dependency order:
+   - Spawns `ticket-executor` (Opus) to implement
+   - Spawns `ticket-verifier` (Sonnet) to verify
+   - Updates `build-progress.md`
+3. Handles failures with clear attribution
+4. Recovers from interruptions automatically
+
+**Prerequisite:** Run `/plan` first and approve the generated tickets.
+
 ---
 
 ## Directory Structure
 
 ```
 project-creator/
-├── CLAUDE.md           # Configuration for Claude
-├── README.md           # This file
-├── methodology.md      # Deep reference on reverse prompting
+├── CLAUDE.md                    # Configuration for Claude
+├── README.md                    # This file
+├── methodology.md               # Deep reference on reverse prompting
 ├── tracking/
-│   ├── current-project.md      # Which project is active
-│   ├── projects-log.md         # Registry of all projects
-│   └── patterns-discovered.md  # Learnings for future use
-├── templates/          # Project templates (emerges over time)
-├── docs/               # Planning documents
-└── projects/           # Sub-projects (git-ignored)
+│   ├── current-project.md       # Which project is active
+│   ├── projects-log.md          # Registry of all projects
+│   └── patterns-discovered.md   # Learnings for future use
+├── .claude/
+│   ├── commands/
+│   │   ├── project.md
+│   │   ├── intake.md
+│   │   ├── onboard.md
+│   │   ├── process.md
+│   │   ├── gaps.md
+│   │   ├── checkpoint.md
+│   │   ├── plan.md              # Cultivation phase
+│   │   └── build.md             # Shaping phase
+│   └── agents/
+│       ├── ticket-executor.md
+│       └── ticket-verifier.md
+├── templates/                   # Project templates (emerges over time)
+├── docs/                        # Planning documents
+└── projects/                    # Sub-projects (git-ignored)
     └── [client]/
-        └── [project]/  # Each has its own git repo
+        └── [project]/           # Each has its own git repo
 ```
 
 ### Sub-Project Structure
@@ -172,7 +350,24 @@ projects/client/project/
     └── decisions.md    # Decisions made during intake
 ```
 
-As the project matures through seeding, it will eventually have CLAUDE.md, README.md, commands, etc.
+After `/plan`, the project also has:
+
+```
+projects/client/project/
+├── implementation-spec.md  # Detailed implementation specification
+└── tickets.yaml            # Structured tickets for /build
+```
+
+After `/build`, the project has full Claude Code configuration:
+
+```
+projects/client/project/
+├── CLAUDE.md           # Project instructions
+├── README.md           # Documentation
+├── build-progress.md   # Build execution log
+└── .claude/
+    └── commands/       # Project-specific commands
+```
 
 ---
 
@@ -186,20 +381,8 @@ As the project matures through seeding, it will eventually have CLAUDE.md, READM
 | Want to see what's missing | `/gaps` |
 | Ending a work session | `/checkpoint` |
 | Switching between projects | `/project client/name` |
-
----
-
-## The Three Phases
-
-Project creation happens in phases:
-
-| Phase | Focus | When You're Here |
-|-------|-------|------------------|
-| **Seeding** | Capture requirements and context | Starting out — this is where `/intake` lives |
-| **Cultivation** | Develop requirements, resolve ambiguity | Have raw material, need to refine |
-| **Shaping** | Generate artifacts, validate | Ready to create CLAUDE.md, commands, etc. |
-
-This version of Project Creator focuses on **Seeding**. Cultivation and Shaping commands will come later.
+| Ready to plan implementation | `/plan` |
+| Plan approved, ready to build | `/build` |
 
 ---
 
@@ -216,3 +399,7 @@ This version of Project Creator focuses on **Seeding**. Cultivation and Shaping 
 5. **Always `/checkpoint`** — Context can be lost. Checkpoints preserve progress.
 
 6. **Projects evolve** — The first pass won't be perfect. That's expected.
+
+7. **Review before `/build`** — Check the Linear tickets created by `/plan` before executing.
+
+8. **`/build` is resumable** — If interrupted, just run `/build` again to continue where you left off.

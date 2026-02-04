@@ -38,7 +38,18 @@ project-creator/
 ├── templates/                   # Project archetypes (emerges over time)
 ├── .gitignore                   # Ignores: projects/
 ├── .claude/
-│   └── commands/                # Seeding phase commands
+│   ├── commands/                # Phase commands
+│   │   ├── intake.md
+│   │   ├── onboard.md
+│   │   ├── process.md
+│   │   ├── gaps.md
+│   │   ├── checkpoint.md
+│   │   ├── project.md
+│   │   ├── plan.md              # Cultivation phase
+│   │   └── build.md             # Shaping phase
+│   └── agents/
+│       ├── ticket-executor.md   # Implements tickets
+│       └── ticket-verifier.md   # Verifies completion
 └── projects/                    # Git-ignored; sub-projects live here
     └── [client]/
         └── [project]/           # Each has its own git repo
@@ -48,7 +59,7 @@ project-creator/
 
 1. **Git isolation** — The `projects/` folder is git-ignored. Each sub-project has its own independent git repository.
 
-2. **Client grouping** — Projects are organized by client: `projects/consortium.team/writing-companion/`
+2. **Client grouping** — Projects are organized by client: `projects/acme-corp/api-service/`
 
 3. **Ignore child CLAUDE.md** — When working at the Project Creator level, ignore CLAUDE.md files inside sub-projects. They have different contexts.
 
@@ -66,15 +77,15 @@ Commands operate on the **current project** stored in `tracking/current-project.
 
 ## The Three Phases
 
-Project creation follows three phases. **This version focuses on Seeding.**
+Project creation follows three phases.
 
 | Phase | Focus | Commands |
 |-------|-------|----------|
 | **Seeding** | Capture requirements, process inputs, identify gaps | `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint` |
-| **Cultivation** | Develop requirements, make decisions, resolve ambiguity | (Future) |
-| **Shaping** | Generate project artifacts, validate, graduate | (Future) |
+| **Cultivation** | Consolidate requirements into actionable plan | `/plan` |
+| **Shaping** | Execute plan and build the project | `/build` |
 
-### Phase 1: Seeding (Current Focus)
+### Phase 1: Seeding
 
 The goal is to **capture enough context** that a well-configured Claude Code project can be generated.
 
@@ -97,6 +108,26 @@ The goal is to **capture enough context** that a well-configured Claude Code pro
 | `/gaps` | Assess what's captured vs. what's still needed |
 | `/checkpoint` | Capture session state before ending |
 
+### Phase 2: Cultivation
+
+Once seeding is substantially complete, consolidate requirements into an implementation plan.
+
+**Commands:**
+
+| Command | Purpose |
+|---------|---------|
+| `/plan` | Generate implementation spec and Linear tickets |
+
+### Phase 3: Shaping
+
+Execute the plan by orchestrating agents to build the project.
+
+**Commands:**
+
+| Command | Purpose |
+|---------|---------|
+| `/build` | Execute tickets via sub-agents |
+
 ---
 
 ## Command Guidance
@@ -105,8 +136,8 @@ The goal is to **capture enough context** that a well-configured Claude Code pro
 
 ```
 /project                              # Show current + list all
-/project consortium.team/api-refactor # Set current (must exist)
-/project new 7tworld/sdd-gen          # Create new and set as current
+/project acme-corp/api-refactor       # Set current (must exist)
+/project new startup-inc/new-project  # Create new and set as current
 ```
 
 When creating a new project:
@@ -171,6 +202,66 @@ End-of-session capture.
 3. Note any patterns discovered
 4. Identify concrete next steps
 5. Prepare handoff notes for potential context loss
+
+### `/plan`
+
+Consolidates captured requirements into an implementation plan with Linear tickets.
+
+**Prerequisites:** Seeding phase substantially complete (run `/gaps` to verify)
+
+**What it produces:**
+- `docs/plans/YYYY-MM-DD-implementation-spec.md` — Full specification with architecture, components, decisions
+- `docs/plans/tickets.yaml` — Structured ticket data for `/build`
+- `docs/plans/build-progress.md` — Progress tracking template
+- Linear tickets with dependencies
+
+**Ticket requirements:**
+- Each ticket must be completable in a single context session
+- Size: S (small) or M (medium) only — no L tickets
+- Must have: acceptance criteria, input files, output files
+- Dependencies marked with `blockedBy`
+
+**Output:** User reviews and approves plan before `/build` can proceed.
+
+### `/build`
+
+Executes the implementation plan by orchestrating sub-agents.
+
+**Prerequisites:** `/plan` completed and approved
+
+**How it works:**
+1. Reads `tickets.yaml` for structured ticket data
+2. For each ticket in dependency order:
+   - Spawns `ticket-executor` agent (Opus) to implement
+   - Spawns `ticket-verifier` agent (Sonnet) to verify
+   - Updates `build-progress.md`
+3. Assembles completed project
+
+**Recovery:** If interrupted, `/build` reads `build-progress.md` and resumes from last incomplete ticket.
+
+**Failure handling:**
+- Executor failure: Retry with clarified instructions
+- Verifier failure: Retry implementation with specific feedback
+- Max 2 retries, then escalate to user
+
+---
+
+## Agents
+
+Project Creator uses specialized agents for build execution:
+
+| Agent | Purpose | Model | Tools |
+|-------|---------|-------|-------|
+| `ticket-executor` | Implements a single ticket | Opus | Read, Write, Edit, Glob, Grep, Bash |
+| `ticket-verifier` | Verifies ticket completion | Sonnet | Read, Glob, Grep (read-only) |
+
+**Why two agents:**
+- Executor can't verify its own work (confirmation bias)
+- Verifier is read-only — can't accidentally "fix" issues
+- Sonnet for verification is cheaper and faster
+- Clear failure attribution
+
+Agents are defined in `.claude/agents/`.
 
 ---
 

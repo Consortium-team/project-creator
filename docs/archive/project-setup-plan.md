@@ -205,7 +205,7 @@ project-creator/
 1. **Project reference format:** `client/project-name`
    - Matches directory structure
    - Clear hierarchy
-   - Example: `consortium.team/presentation-workflow`
+   - Example: `acme-corp/sample-project`
 
 2. **Current project storage:** Markdown file (`tracking/current-project.md`)
    - Consistency with other tracking files
@@ -247,7 +247,7 @@ project-creator/
 cd project-creator
 
 # Create new project context
-/project new consortium.team/presentation-workflow
+/project new acme-corp/sample-project
 
 # Start reverse prompting
 /intake
@@ -286,7 +286,7 @@ git clone <repo> projects/acme-corp/existing-api
 
 ```
 # Set current project
-/project consortium.team/presentation-workflow
+/project acme-corp/sample-project
 
 # Check where we left off
 /gaps
@@ -301,8 +301,6 @@ git clone <repo> projects/acme-corp/existing-api
 ---
 
 ## Success Criteria
-
-From ticket CON-19:
 
 - [ ] CLAUDE.md clearly describes the pattern and role
 - [ ] README.md is usable by a human starting a session
@@ -322,7 +320,7 @@ From ticket CON-19:
 After initial build:
 
 ```
-/project new consortium.team/presentation-creation-workflow
+/project new acme-corp/sample-project
 /intake
 /process [transcripts]
 /gaps

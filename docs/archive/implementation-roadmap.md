@@ -171,7 +171,7 @@ Validate the system works end-to-end.
 
 ### 5.1 Test Scenario
 
-- [ ] Run: `/project new consortium.team/presentation-creation-workflow`
+- [ ] Run: `/project new acme-corp/sample-project`
 - [ ] Run: `/intake` and go through reverse prompting
 - [ ] Run: `/process` with sample transcript (if available)
 - [ ] Run: `/gaps` to see assessment
@@ -194,8 +194,6 @@ Validate the system works end-to-end.
 ---
 
 ## Success Criteria Checklist
-
-From ticket CON-19:
 
 - [ ] CLAUDE.md clearly describes the pattern and role
 - [ ] README.md is usable by a human starting a session

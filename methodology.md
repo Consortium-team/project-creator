@@ -414,12 +414,12 @@ parent-project/
 ```
 project-creator/
 └── projects/
-    ├── 7tworld/
-    │   └── sdd-gen/
-    ├── consortium.team/
-    │   ├── presentation-creation-workflow/
-    │   └── writing-companion-ai/
-    └── acme-corp/
+    ├── acme-corp/
+    │   └── api-refactor/
+    ├── startup-inc/
+    │   ├── web-app/
+    │   └── data-pipeline/
+    └── example-org/
         └── onboarding-system/
 ```
 
@@ -450,8 +450,8 @@ project-creator/
 
 **Examples:**
 ```
-/project consortium.team/presentation-workflow    # Set current
-/project new 7tworld/api-refactor                 # Create and set
+/project acme-corp/web-app                        # Set current
+/project new startup-inc/api-refactor             # Create and set
 /intake                                           # Uses current project
 /intake acme-corp/onboarding                      # Override for specific project
 ```
