@@ -1,0 +1,10 @@
+# Sub-projects have their own independent git repos
+projects/
+
+# OS files
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
