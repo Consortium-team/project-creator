@@ -165,6 +165,14 @@ status: planned
 ## Architecture
 
 ### Structure
+
+**IMPORTANT: Follow Claude Code project conventions:**
+- `.claude/commands/` — Slash commands (e.g., /start-day, /process-meeting)
+- `.claude/agents/` — Agent definitions
+- `.claude/skills/` — Reusable skills
+- `.claude/shortcuts/` — Scheduled shortcuts
+- `templates/`, `context/`, `docs/` — Project-specific content (not in .claude/)
+
 [Directory structure, key files, overall organization]
 
 ### Components

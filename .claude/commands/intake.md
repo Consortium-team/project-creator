@@ -5,9 +5,13 @@ Draw out project requirements through guided conversation.
 ## Usage
 
 ```
-/intake                     # Use current project
-/intake [client/project]    # Override for specific project
+/intake                           # Use current project
+/intake [client/project]          # Override for specific project
+/intake [type]                    # Use project type for current project
+/intake [type] [client/project]   # Both type and project
 ```
+
+**Project types** accelerate intake with type-specific questions. Available types are in `project-types/public/` and `project-types/private/`.
 
 ## Argument: $ARGUMENTS
 
@@ -46,6 +50,26 @@ We can continue from here, or start fresh. What would you prefer?
 
 ---
 
+### Step 2b: Load Project Type (if specified)
+
+If `$ARGUMENTS` contains a project type (matches a directory in `project-types/public/` or `project-types/private/`):
+
+1. Search for the type in both directories and read the type's intake guide:
+   - `project-types/{public,private}/[type]/TYPE.md` — What this type is
+   - `project-types/{public,private}/[type]/intake-guide.md` — Type-specific questions
+   - `project-types/{public,private}/[type]/reference-projects.md` — What worked before
+
+2. Note the type in `context/decisions.md`:
+   ```markdown
+   | Project type: [type] | Accelerator from project-types/[type] | [date] |
+   ```
+
+3. Use the type's intake questions **in addition to** the core questions below. Type questions help reach known-good configurations faster.
+
+**Important:** Project types are accelerators, not constraints. They get you to a good starting point. The methodology ("start wrong, iterate to right") handles adaptation through usage.
+
+---
+
 ### Step 3: Begin Reverse Prompting
 
 **Your role:** Draw out what the user knows. Don't assume or generate requirements — extract them.
@@ -64,6 +88,8 @@ What problem does [project] solve? Or put another way — why does this project 
 ### Step 4: The Question Sequence
 
 Work through these areas, but **adapt based on answers**. Don't mechanically go through a checklist — let the conversation flow naturally while ensuring coverage.
+
+**If a project type is loaded:** Weave the type-specific questions from `intake-guide.md` into the flow below. Type questions often provide better specificity for their domain. For example, a "writing-companion" type would ask about anchor types, mentors, and transformation levels — questions that the generic intake wouldn't know to ask.
 
 **1. Purpose (start here)**
 - What problem does this solve?

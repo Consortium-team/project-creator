@@ -64,3 +64,19 @@ Return a structured report:
 - Create all output files specified in the ticket
 - Do not modify files outside the project directory
 - Keep changes focused on the ticket scope — no "while I'm here" improvements
+
+## Claude Code Directory Conventions
+
+**ALWAYS** follow these conventions for Claude Code projects:
+
+| Component | Location | Example |
+|-----------|----------|---------|
+| Commands | `.claude/commands/` | `.claude/commands/start-day.md` |
+| Agents | `.claude/agents/` | `.claude/agents/meeting-processor.md` |
+| Skills | `.claude/skills/` | `.claude/skills/client-communication.md` |
+| Shortcuts | `.claude/shortcuts/` | `.claude/shortcuts/monthly-invoices.yaml` |
+| Templates | `templates/` | `templates/invoice.md` |
+| Context | `context/` | `context/requirements.md` |
+| Docs | `docs/` | `docs/plans/spec.md` |
+
+**Do NOT** create `commands/`, `agents/`, `skills/`, or `shortcuts/` directories at the project root — they belong under `.claude/`.

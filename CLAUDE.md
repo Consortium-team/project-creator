@@ -35,6 +35,16 @@ project-creator/
 │   ├── current-project.md       # Active project: client/project-name
 │   ├── projects-log.md          # Registry of all projects
 │   └── patterns-discovered.md   # Learnings for future templates
+├── project-types/               # Codified project types (accelerators)
+│   ├── public/                  # Open source types (committed to repo)
+│   │   └── [type-name]/
+│   │       ├── TYPE.md              # What this type is, when to use
+│   │       ├── intake-guide.md      # Type-specific intake questions
+│   │       ├── typical-structure.md # Directory layout that works
+│   │       ├── typical-commands.md  # Commands this type usually has
+│   │       └── reference-projects.md# Successful implementations
+│   └── private/                 # Proprietary types (git-ignored)
+│       └── [type-name]/         # Same structure as public types
 ├── templates/                   # Project archetypes (emerges over time)
 ├── .gitignore                   # Ignores: projects/
 ├── .claude/
@@ -149,7 +159,18 @@ When creating a new project:
 
 ### `/intake`
 
-Start reverse prompting for a new project. Ask questions to draw out:
+Start reverse prompting for a new project.
+
+**Project Type Acceleration:**
+
+If a project type is specified (e.g., `/intake writing-companion`), search for the type in both `project-types/public/` and `project-types/private/`, then read the type's intake guide:
+- `project-types/{public,private}/[type]/intake-guide.md` — Type-specific questions
+- `project-types/{public,private}/[type]/typical-structure.md` — What to aim for
+- `project-types/{public,private}/[type]/reference-projects.md` — What worked before
+
+Type-specific questions accelerate to known-good starting points. They don't constrain — the methodology handles adaptation through usage.
+
+**Core questions (always ask):**
 
 1. **Purpose** — What problem does this solve? Why does it matter?
 2. **Users** — Who will use this? What do they need?

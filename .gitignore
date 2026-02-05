@@ -13,6 +13,12 @@ projects/
 # Project tracking - contains client/project references and activity logs
 tracking/
 
+# Project ideas - may contain proprietary or confidential concepts
+project-ideas/
+
+# Private project types - proprietary type accelerators not for public release
+project-types/private/
+
 # =============================================================================
 # USER-SPECIFIC / LOCAL FILES
 # =============================================================================
