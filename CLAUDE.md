@@ -37,7 +37,7 @@ project-creator/
 │   └── patterns-discovered.md   # Learnings for future templates
 ├── project-types/               # Codified project types (accelerators)
 │   ├── public/                  # Open source types (committed to repo)
-│   │   └── [type-name]/
+│   │   └── product-manager/     # PM thinking partner for product strategy
 │   │       ├── TYPE.md              # What this type is, when to use
 │   │       ├── intake-guide.md      # Type-specific intake questions
 │   │       ├── typical-structure.md # Directory layout that works
@@ -163,12 +163,15 @@ Start reverse prompting for a new project.
 
 **Project Type Acceleration:**
 
-If a project type is specified (e.g., `/intake writing-companion`), search for the type in both `project-types/public/` and `project-types/private/`, then read the type's intake guide:
+If a project type is specified (e.g., `/intake product-manager`), search for the type in both `project-types/public/` and `project-types/private/`, then read the type's intake guide:
 - `project-types/{public,private}/[type]/intake-guide.md` — Type-specific questions
 - `project-types/{public,private}/[type]/typical-structure.md` — What to aim for
 - `project-types/{public,private}/[type]/reference-projects.md` — What worked before
 
 Type-specific questions accelerate to known-good starting points. They don't constrain — the methodology handles adaptation through usage.
+
+**Available public types:**
+- `product-manager` — PM thinking partner for product strategy and discovery (strategy-as-anchor, reverse prompting, three-phase methodology)
 
 **Core questions (always ask):**
 

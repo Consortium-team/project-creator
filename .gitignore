@@ -19,6 +19,10 @@ project-ideas/
 # Private project types - proprietary type accelerators not for public release
 project-types/private/
 
+# Reference projects in public types - these reference private project paths
+# that won't exist for other users. Each user builds their own over time.
+project-types/public/*/reference-projects.md
+
 # =============================================================================
 # USER-SPECIFIC / LOCAL FILES
 # =============================================================================

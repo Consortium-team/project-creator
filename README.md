@@ -60,6 +60,7 @@ flowchart TD
 
 # 2. Seed: Capture requirements
 /intake                    # Interactive requirements gathering
+/intake product-manager    # ...or use a project type for accelerated intake
 /process                   # Feed in existing documents
 /gaps                      # Check what's missing
 
@@ -85,7 +86,8 @@ cd project-creator
 /project new acme-corp/api-service
 
 # Start the intake conversation
-/intake
+/intake                         # General intake
+/intake product-manager         # Or specify a project type (see below)
 
 # (Answer questions as Claude draws out your requirements)
 
@@ -226,6 +228,25 @@ Starts a guided conversation to capture project requirements. Claude asks questi
 
 Captured information is written to `[project]/context/` files.
 
+**Project Type Acceleration:**
+
+You can specify a project type to accelerate intake with type-specific questions, proven directory structures, and reference implementations:
+
+```
+/intake product-manager         # Use a known project type
+/intake                         # General intake (no type)
+```
+
+When a type is specified, Claude loads the type's intake guide, typical structure, and reference projects — giving you a head start based on what's worked before.
+
+**Available Public Project Types:**
+
+| Type | Description | Use When |
+|------|-------------|----------|
+| `product-manager` | PM thinking partner for product strategy and discovery | You have a product idea and need a critical, creative PM to help discover strategy, write specs, and create implementation tickets |
+
+Private project types may also be available in `project-types/private/`. Run `/intake` without a type to see all available options.
+
 ### `/onboard` — Existing Project Analysis
 
 For projects that already exist. Claude:
@@ -301,6 +322,7 @@ Executes the approved plan using sub-agents:
    - Updates `build-progress.md`
 3. Handles failures with clear attribution
 4. Recovers from interruptions automatically
+5. If a project type was used, updates the type's `reference-projects.md` with this project as a new reference
 
 **Prerequisite:** Run `/plan` first and approve the generated tickets.
 
@@ -317,6 +339,10 @@ project-creator/
 │   ├── current-project.md       # Which project is active
 │   ├── projects-log.md          # Registry of all projects
 │   └── patterns-discovered.md   # Learnings for future use
+├── project-types/               # Codified project types (accelerators)
+│   ├── public/                  # Open source types (committed to repo)
+│   │   └── product-manager/     # PM thinking partner for product strategy
+│   └── private/                 # Proprietary types (git-ignored)
 ├── .claude/
 │   ├── commands/
 │   │   ├── project.md
@@ -376,6 +402,7 @@ projects/client/project/
 | Situation | Command |
 |-----------|---------|
 | Starting fresh with an idea | `/project new` then `/intake` |
+| Starting a known project type (e.g., PM) | `/project new` then `/intake product-manager` |
 | Have an existing codebase | Clone it, then `/onboard` |
 | Have meeting notes or transcripts | `/process` |
 | Want to see what's missing | `/gaps` |
@@ -403,3 +430,57 @@ projects/client/project/
 7. **Review before `/build`** — Check the Linear tickets created by `/plan` before executing.
 
 8. **`/build` is resumable** — If interrupted, just run `/build` again to continue where you left off.
+
+9. **Use project types when they fit** — Running `/intake product-manager` is faster than starting from scratch.
+
+---
+
+## Project Types
+
+Project types are codified patterns that accelerate intake. When you've built a particular kind of project enough times, the patterns get extracted into a type with specialized intake questions, proven directory structures, and reference implementations.
+
+### Available Public Types
+
+| Type | What It Creates | Key Pattern |
+|------|----------------|-------------|
+| **`product-manager`** | A PM thinking partner Claude project | Strategy-as-anchor: product hypothesis as decision lens, reverse prompting for discovery, three-phase methodology (Seeding → Cultivation → Shaping) |
+
+Use a type by passing it to `/intake`:
+
+```bash
+/project new my-company/my-product-pm
+/intake product-manager
+```
+
+### Type Structure
+
+Each type contains 5 files:
+
+| File | Purpose |
+|------|---------|
+| `TYPE.md` | What this type is, when to use it, what varies vs. what's universal |
+| `intake-guide.md` | Type-specific intake questions (loaded automatically by `/intake`) |
+| `typical-structure.md` | Directory layout that works for this type |
+| `typical-commands.md` | Commands this type usually has |
+| `reference-projects.md` | Successful implementations to learn from |
+
+### Creating New Types
+
+Project types emerge from successful projects. When a project pattern has been used 2+ times and the patterns are clear, extract it:
+
+1. Create `project-types/public/[type-name]/` (or `private/` for proprietary types)
+2. Write all 5 type files following the structure above
+3. Add the first reference project
+4. Test it by running `/intake [type-name]` for a new project
+
+Private types live in `project-types/private/` and are git-ignored.
+
+### A Note on Reference Projects
+
+Each type includes a `reference-projects.md` that documents successful implementations — configuration choices, key decisions, what worked, files worth studying. These are enormously helpful for accelerating future projects of the same type.
+
+However, reference projects point to actual project paths in your `projects/` directory, which is private and git-ignored. So `reference-projects.md` is also git-ignored for public types — it wouldn't be useful to someone who doesn't have your projects.
+
+**The good news:** `/build` automatically updates `reference-projects.md` after completing a build for any project that was created from a type. You don't need to do anything — each successful build adds itself as a reference for the next project of that type.
+
+When you clone this repo or start using a public type for the first time, you won't have a `reference-projects.md` yet. That's fine — the type works without it. Your first `/build` will create it.

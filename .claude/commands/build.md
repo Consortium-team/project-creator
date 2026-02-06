@@ -342,6 +342,75 @@ The project is ready for review.
 
 ---
 
+### Step 8: Update Reference Projects (if project type was used)
+
+After the build completes, check whether this project was created from a project type:
+
+1. **Check for project type** — Read `context/decisions.md` and look for a "Project type:" entry (recorded by `/intake` Step 2b)
+2. **If no type was used** — Skip this step
+3. **If a type was used:**
+
+   a. Locate the type's `reference-projects.md`:
+      - `project-types/public/[type]/reference-projects.md` or
+      - `project-types/private/[type]/reference-projects.md`
+
+   b. If `reference-projects.md` doesn't exist yet, create it using the template from the type's existing files (check TYPE.md or reference-projects.md from another type for the pattern)
+
+   c. Read the built project's key files to extract reference data:
+      - `CLAUDE.md` — Configuration and voice
+      - `context/decisions.md` — Key decisions with rationale
+      - `context/requirements.md` — What was built and why
+      - `context/constraints.md` — Constraints that shaped the project
+
+   d. Append a new reference project entry:
+
+   ```markdown
+   ## [Project Name]
+
+   **Location:** `projects/[client]/[project]/`
+   **Client:** [client name]
+   **Status:** Active, newly built
+
+   ### Configuration
+
+   | Dimension | Setting |
+   |-----------|---------|
+   | [Type-relevant dimension] | [Value] |
+   ...
+
+   ### Key Decisions
+
+   1. [Decision] — [Rationale]
+   ...
+
+   ### What Works Well
+
+   - [Learnings from the build — what patterns emerged]
+
+   ### Files Worth Studying
+
+   - `[path]` — [Why it's worth reading]
+   ...
+   ```
+
+   e. If prior reference projects exist, add a comparison section:
+   ```markdown
+   ### Differences from [Prior Project]
+
+   | Aspect | [Prior] | [This Project] |
+   |--------|---------|----------------|
+   ...
+   ```
+
+4. **Report the update:**
+   ```
+   Updated reference-projects.md for the [type] project type with [project] as a new reference implementation.
+   ```
+
+**Why this matters:** Reference projects are the most valuable part of a project type. Each successful build makes the type better for the next project. This step captures learnings while context is fresh — you'll never have a better view of what worked than right after building it.
+
+---
+
 ## Key Principles
 
 ### Stay Lightweight
