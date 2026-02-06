@@ -74,7 +74,7 @@ flowchart TD
 
 ---
 
-## Quick Start
+## Quick Start (for usage within Claude Code)
 
 ### Starting a New Project
 
@@ -126,6 +126,62 @@ git clone <repo-url> projects/acme-corp/existing-api
 # End session
 /checkpoint
 ```
+
+---
+
+## Quick Start (for usage within a Claude Cowork task)
+
+Claude Cowork tasks run in a separate environment where Claude doesn't automatically read your project configuration. You need to explicitly tell it to orient itself first.
+
+### Setting Up
+
+1. When creating a Cowork task, click the button to set working folders
+2. Set the working folder to your `project-creator` directory
+
+### Starting a Project
+
+Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local commands, agents, and skills — and will make up its own versions when you reference them later.
+
+**Example opening prompt:**
+
+> We're going to be creating another writing companion project. First, let's make sure you've set yourself up as the project creator. Look at the `CLAUDE.md` in this working directory and make sure you understand it. Then look in the `.claude` folder so you see the local commands, agents, and skills available for you to use.
+
+The key elements are:
+- **State what you're doing** — Give Claude the high-level goal
+- **Direct it to read `CLAUDE.md`** — This is the project configuration that defines how Project Creator works
+- **Direct it to read the `.claude` folder** — This is where commands (`/intake`, `/plan`, `/build`, etc.), agents, and skills live
+
+After Claude confirms it has oriented itself, you can use commands normally.
+
+**Example follow-up prompt (creating a project):**
+
+> Run the `/project` command to create a new project in `consortium.team` and call it `writing-companion-sonjaya`.
+
+**Example follow-up prompt (providing context before intake):**
+
+> Now to give you a little context before we do the intake command. The very first writing companion we created was called `the-sorrow`. Then I met with a friend who was interested in testing the experience, so we created `writing-companion-[friend name]` for him. We also thought about productizing the experience, which is what `writing-companion-pm` is about — but you can ignore that one for this project since it's about productization rather than creating a new writing companion for a specific person.
+>
+> Even though I have the writing companion called `the-sorrow`, that was my first take at it. I want to re-intake myself where we can use `the-sorrow` as context, but apply the learnings from when we created `writing-companion-[friend name]` and the learnings from abstracting that into the writing companion project type.
+>
+> Please run the command: `/intake writing-companion`
+
+This example shows an important pattern: **give Claude the lay of the land before running a command**. By explaining which prior projects exist, how they relate, and what you want to carry forward vs. ignore, you get a much more informed intake conversation.
+
+**Example follow-up prompt (checking progress):**
+
+> Run the `/gaps` command and see how we're doing.
+
+**Example follow-up prompt (running the plan):**
+
+> Please run the `/plan` command. I'm not saying do the things that you think the plan should do — actually run the command so that we're following the disciplined steps that it takes.
+
+Note the explicit instruction to run the command rather than improvise. In Cowork tasks, Claude sometimes interprets a request like "plan this" as permission to do what it thinks planning means, rather than executing the `/plan` command with its defined steps. Being direct about this avoids skipped steps.
+
+**Running the build:**
+
+At this point you can switch to Claude Code to run `/build`, which tends to work more reliably for the build phase. If you prefer to stay in Cowork, use the same explicit form:
+
+> Please run the `/build` command. I'm not saying do the things that you think the build should do — actually run the command so that we're following the disciplined steps that it takes.
 
 ---
 
