@@ -10,67 +10,81 @@
 
 ### Required
 
-- **Claude Code** — This project is designed to run inside Claude Code
-- **Linear MCP** — The `/plan` and `/build` commands create and read tickets from Linear
+- **Clone this repository** — Clone (or fork and clone) the project-creator repo to a local directory
+- **Claude Code** — This project is designed to run inside Claude Code or a Claude cowork task.
+- **Linear MCP** — The `/plan` and `/build` commands create and read tickets from Linear. See [Linear's MCP setup guide](https://linear.app/docs/mcp) for configuration instructions.
 
 ### Linear Setup
 
 Project Creator uses [Linear](https://linear.app) as the external memory for implementation plans. The Cultivation and Shaping phases require Linear MCP to be configured.
 
-1. Install the Linear MCP server in your Claude Code configuration
+1. Install the Linear MCP server in your Claude Code configuration (see [Linear MCP docs](https://linear.app/docs/mcp))
 2. Authenticate with your Linear workspace
 3. Create a Linear project for tracking Project Creator work (or use an existing one)
 
 Without Linear, you can still use the Seeding phase commands (`/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint`), but `/plan` and `/build` will not function.
 
----
+### Nice to Have
 
-## Workflow Overview
-
-```mermaid
-flowchart TD
-    subgraph Seeding["Phase 1: Seeding"]
-        S1["/intake or /onboard"]
-        S2["/process, /gaps, /checkpoint"]
-    end
-
-    subgraph Cultivation["Phase 2: Cultivation"]
-        C["/plan"]
-    end
-
-    subgraph Shaping["Phase 3: Shaping"]
-        B["/build"]
-    end
-
-    Seeding --> Cultivation --> Shaping
-
-    S1 --> |"Capture requirements"| S2
-    S2 --> |"Process inputs, identify gaps"| C
-    C --> |"Create spec & Linear tickets"| B
-    B --> |"Execute with sub-agents"| done["Configured Project"]
-```
+- **[Granola.ai](https://granola.ai)** — AI meeting notes tool. With the Granola MCP configured, you can feed meeting transcripts directly into Project Creator using prompts like `/process the Granola transcript from yesterday with [client name]`. Not required, but useful if your project requirements live in meeting conversations. See [Granola MCP setup instructions](https://docs.granola.ai/help-center/sharing/integrations/mcp#claude-code).
 
 ---
 
-## Typical Workflow
+## Quick Start (for usage within a Claude Cowork task)
 
-```bash
-# 1. Create or set project
-/project new client/project-name
+We recommend using a Claude Cowork task for the Seeding and Cultivation phases (`/intake`, `/process`, `/gaps`, `/plan`), then switching to Claude Code for the Shaping phase (`/build`). Cowork's conversational interface is well-suited for the back-and-forth of requirements gathering and planning, while Claude Code's tool access makes it more reliable for build execution.
 
-# 2. Seed: Capture requirements
-/intake                    # Interactive requirements gathering
-/intake product-manager    # ...or use a project type for accelerated intake
-/process                   # Feed in existing documents
-/gaps                      # Check what's missing
+Cowork tasks run in a separate environment where Claude doesn't automatically read your project configuration. You need to explicitly tell it to orient itself first.
 
-# 3. Cultivate: Plan the build
-/plan                      # Creates spec + Linear tickets
-# Review tickets in Linear, approve when ready
+### Setting Up
 
-# 4. Shape: Build the project
-/build                     # Executes tickets with sub-agents
-```
+1. When creating a Cowork task, click the button to set working folders
+2. Set the working folder to your `project-creator` directory
+
+### Starting a Project
+
+Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local commands, agents, and skills — and will make up its own versions when you reference them later.
+
+**Example opening prompt:**
+
+> We're going to be creating another writing companion project. First, let's make sure you've set yourself up as the project creator. Look at the `CLAUDE.md` in this working directory and make sure you understand it. Then look in the `.claude` folder so you see the local commands, agents, and skills available for you to use.
+
+The key elements are:
+- **State what you're doing** — Give Claude the high-level goal
+- **Direct it to read `CLAUDE.md`** — This is the project configuration that defines how Project Creator works
+- **Direct it to read the `.claude` folder** — This is where commands (`/intake`, `/plan`, `/build`, etc.), agents, and skills live
+
+After Claude confirms it has oriented itself, you can use commands normally.
+
+**Example follow-up prompt (creating a project):**
+
+> Run the `/project` command to create a new project in `consortium.team` and call it `writing-companion-sonjaya`.
+
+**Example follow-up prompt (providing context before intake):**
+
+> Now to give you a little context before we do the intake command. The very first writing companion we created was called `the-sorrow`. Then I met with a friend who was interested in testing the experience, so we created `writing-companion-[friend name]` for him. We also thought about productizing the experience, which is what `writing-companion-pm` is about — but you can ignore that one for this project since it's about productization rather than creating a new writing companion for a specific person.
+>
+> Even though I have the writing companion called `the-sorrow`, that was my first take at it. I want to re-intake myself where we can use `the-sorrow` as context, but apply the learnings from when we created `writing-companion-[friend name]` and the learnings from abstracting that into the writing companion project type.
+>
+> Please run the command: `/intake writing-companion`
+
+This example shows an important pattern: **give Claude the lay of the land before running a command**. By explaining which prior projects exist, how they relate, and what you want to carry forward vs. ignore, you get a much more informed intake conversation.
+
+**Example follow-up prompt (checking progress):**
+
+> Run the `/gaps` command and see how we're doing.
+
+**Example follow-up prompt (running the plan):**
+
+> Please run the `/plan` command. I'm not saying do the things that you think the plan should do — actually run the command so that we're following the disciplined steps that it takes.
+
+Note the explicit instruction to run the command rather than improvise. In Cowork tasks, Claude sometimes interprets a request like "plan this" as permission to do what it thinks planning means, rather than executing the `/plan` command with its defined steps. Being direct about this avoids skipped steps.
+
+**Running the build:**
+
+At this point, switch to Claude Code to run `/build` — it's more reliable for the build phase. If you prefer to stay in Cowork, use the same explicit form:
+
+> Please run the `/build` command. I'm not saying do the things that you think the build should do — actually run the command so that we're following the disciplined steps that it takes.
 
 ---
 
@@ -129,59 +143,52 @@ git clone <repo-url> projects/acme-corp/existing-api
 
 ---
 
-## Quick Start (for usage within a Claude Cowork task)
+## Workflow Overview
 
-Claude Cowork tasks run in a separate environment where Claude doesn't automatically read your project configuration. You need to explicitly tell it to orient itself first.
+```mermaid
+flowchart TD
+    subgraph Seeding["Phase 1: Seeding"]
+        S1["/intake or /onboard"]
+        S2["/process, /gaps, /checkpoint"]
+    end
 
-### Setting Up
+    subgraph Cultivation["Phase 2: Cultivation"]
+        C["/plan"]
+    end
 
-1. When creating a Cowork task, click the button to set working folders
-2. Set the working folder to your `project-creator` directory
+    subgraph Shaping["Phase 3: Shaping"]
+        B["/build"]
+    end
 
-### Starting a Project
+    Seeding --> Cultivation --> Shaping
 
-Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local commands, agents, and skills — and will make up its own versions when you reference them later.
+    S1 --> |"Capture requirements"| S2
+    S2 --> |"Process inputs, identify gaps"| C
+    C --> |"Create spec & Linear tickets"| B
+    B --> |"Execute with sub-agents"| done["Configured Project"]
+```
 
-**Example opening prompt:**
+---
 
-> We're going to be creating another writing companion project. First, let's make sure you've set yourself up as the project creator. Look at the `CLAUDE.md` in this working directory and make sure you understand it. Then look in the `.claude` folder so you see the local commands, agents, and skills available for you to use.
+## Typical Workflow
 
-The key elements are:
-- **State what you're doing** — Give Claude the high-level goal
-- **Direct it to read `CLAUDE.md`** — This is the project configuration that defines how Project Creator works
-- **Direct it to read the `.claude` folder** — This is where commands (`/intake`, `/plan`, `/build`, etc.), agents, and skills live
+```bash
+# 1. Create or set project
+/project new client/project-name
 
-After Claude confirms it has oriented itself, you can use commands normally.
+# 2. Seed: Capture requirements
+/intake                    # Interactive requirements gathering
+/intake product-manager    # ...or use a project type for accelerated intake
+/process                   # Feed in existing documents
+/gaps                      # Check what's missing
 
-**Example follow-up prompt (creating a project):**
+# 3. Cultivate: Plan the build
+/plan                      # Creates spec + Linear tickets
+# Review tickets in Linear, approve when ready
 
-> Run the `/project` command to create a new project in `consortium.team` and call it `writing-companion-sonjaya`.
-
-**Example follow-up prompt (providing context before intake):**
-
-> Now to give you a little context before we do the intake command. The very first writing companion we created was called `the-sorrow`. Then I met with a friend who was interested in testing the experience, so we created `writing-companion-[friend name]` for him. We also thought about productizing the experience, which is what `writing-companion-pm` is about — but you can ignore that one for this project since it's about productization rather than creating a new writing companion for a specific person.
->
-> Even though I have the writing companion called `the-sorrow`, that was my first take at it. I want to re-intake myself where we can use `the-sorrow` as context, but apply the learnings from when we created `writing-companion-[friend name]` and the learnings from abstracting that into the writing companion project type.
->
-> Please run the command: `/intake writing-companion`
-
-This example shows an important pattern: **give Claude the lay of the land before running a command**. By explaining which prior projects exist, how they relate, and what you want to carry forward vs. ignore, you get a much more informed intake conversation.
-
-**Example follow-up prompt (checking progress):**
-
-> Run the `/gaps` command and see how we're doing.
-
-**Example follow-up prompt (running the plan):**
-
-> Please run the `/plan` command. I'm not saying do the things that you think the plan should do — actually run the command so that we're following the disciplined steps that it takes.
-
-Note the explicit instruction to run the command rather than improvise. In Cowork tasks, Claude sometimes interprets a request like "plan this" as permission to do what it thinks planning means, rather than executing the `/plan` command with its defined steps. Being direct about this avoids skipped steps.
-
-**Running the build:**
-
-At this point you can switch to Claude Code to run `/build`, which tends to work more reliably for the build phase. If you prefer to stay in Cowork, use the same explicit form:
-
-> Please run the `/build` command. I'm not saying do the things that you think the build should do — actually run the command so that we're following the disciplined steps that it takes.
+# 4. Shape: Build the project
+/build                     # Executes tickets with sub-agents
+```
 
 ---
 
