@@ -307,6 +307,7 @@ When a type is specified, Claude loads the type's intake guide, typical structur
 | Type | Description | Use When |
 |------|-------------|----------|
 | `product-manager` | PM thinking partner for product strategy and discovery | You have a product idea and need a critical, creative PM to help discover strategy, write specs, and create implementation tickets |
+| `software-development` | Document-driven AI code generation with developer engagement at planning and review | You're building or maintaining software and want 100% AI-generated code with developer engagement at the design, planning, and code review level |
 
 Private project types may also be available in `project-types/private/`. Run `/intake` without a type to see all available options.
 
@@ -507,12 +508,16 @@ Project types are codified patterns that accelerate intake. When you've built a 
 | Type | What It Creates | Key Pattern |
 |------|----------------|-------------|
 | **`product-manager`** | A PM thinking partner Claude project | Strategy-as-anchor: product hypothesis as decision lens, reverse prompting for discovery, three-phase methodology (Seeding → Cultivation → Shaping) |
+| **`software-development`** | A document-driven software development Claude project | Docs context ecosystem as operating system for AI code generation, developer engagement at planning/review altitude, specification-based testing, maturation model (Level 1 → Level 2) |
 
 Use a type by passing it to `/intake`:
 
 ```bash
 /project new my-company/my-product-pm
 /intake product-manager
+
+/project new my-company/my-web-app
+/intake software-development
 ```
 
 ### Type Structure

@@ -37,7 +37,13 @@ project-creator/
 │   └── patterns-discovered.md   # Learnings for future templates
 ├── project-types/               # Codified project types (accelerators)
 │   ├── public/                  # Open source types (committed to repo)
-│   │   └── product-manager/     # PM thinking partner for product strategy
+│   │   ├── product-manager/     # PM thinking partner for product strategy
+│   │   │   ├── TYPE.md              # What this type is, when to use
+│   │   │   ├── intake-guide.md      # Type-specific intake questions
+│   │   │   ├── typical-structure.md # Directory layout that works
+│   │   │   ├── typical-commands.md  # Commands this type usually has
+│   │   │   └── reference-projects.md# Successful implementations
+│   │   └── software-development/# Document-driven AI code generation
 │   │       ├── TYPE.md              # What this type is, when to use
 │   │       ├── intake-guide.md      # Type-specific intake questions
 │   │       ├── typical-structure.md # Directory layout that works
@@ -172,6 +178,7 @@ Type-specific questions accelerate to known-good starting points. They don't con
 
 **Available public types:**
 - `product-manager` — PM thinking partner for product strategy and discovery (strategy-as-anchor, reverse prompting, three-phase methodology)
+- `software-development` — Document-driven AI code generation with developer engagement at planning and review (living docs context ecosystem, specification-based testing, maturation model)
 
 **Core questions (always ask):**
 
