@@ -31,6 +31,9 @@ project-creator/
 ├── CLAUDE.md                    # This file (parent configuration)
 ├── README.md                    # Workflow guide for humans
 ├── methodology.md               # Reference: reverse prompting deep dive
+├── docs/                        # Documentation and guides
+│   └── guides/
+│       └── getting-up-to-speed-on-github/  # Git/GitHub onboarding for non-technical users
 ├── tracking/
 │   ├── current-project.md       # Active project: client/project-name
 │   ├── projects-log.md          # Registry of all projects
@@ -166,6 +169,8 @@ When creating a new project:
 ### `/intake`
 
 Start reverse prompting for a new project.
+
+**Prerequisites**: Users should have Git/GitHub configured. For non-technical users new to Git, see [`docs/guides/getting-up-to-speed-on-github/`](docs/guides/getting-up-to-speed-on-github/) (includes quick-start option).
 
 **Project Type Acceleration:**
 

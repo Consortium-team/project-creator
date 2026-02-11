@@ -10,6 +10,7 @@
 
 ### Required
 
+- **Git & GitHub** — You'll need Git installed and GitHub configured to use Project Creator. **New to Git?** See our [Getting Up to Speed on GitHub](docs/guides/getting-up-to-speed-on-github/) guide (2-3 hours for setup; includes quick-start option).
 - **Clone this repository** — Clone (or fork and clone) the project-creator repo to a local directory
 - **Claude Code** — This project is designed to run inside Claude Code or a Claude cowork task.
 - **Linear MCP** — The `/plan` and `/build` commands create and read tickets from Linear. See [Linear's MCP setup guide](https://linear.app/docs/mcp) for configuration instructions.
