@@ -16,9 +16,80 @@ Set, show, or create the current project context.
 
 ## Instructions
 
+Check if your context contains a `[project-context-hook]` block. If it does, follow the **With Hook Results** path. If not, follow the **Without Hook Results (Fallback)** path.
+
+---
+
+### With Hook Results
+
+The hook has already performed all filesystem operations (directory scanning, file reads/writes, git init). **Do not** re-read tracking files, scan directories, or run bash commands. Use the hook data directly.
+
+Read the `mode` and `status` fields from the `[project-context-hook]` block and handle each case:
+
+#### mode: show
+
+Format and display the project listing from the hook data:
+
+```
+Current project: [current_project value] (or "None" if "none")
+
+Available projects:
+  [list from projects field, preserving (current) marker]
+```
+
+If projects list shows `(none)`:
+```
+Current project: None
+
+No projects yet. Create one with:
+  /project new [client/project]
+```
+
+#### mode: set, status: success
+
+Confirm the change:
+```
+Current project set to: [project_path]
+```
+If `previous_project` differs from `project_path`, add: `(was: [previous_project])`
+
+#### mode: set, status: error
+
+- **project_not_found**: Report the error and list available projects. Suggest: "Did you mean `/project new [requested_path]` to create it?"
+- **invalid_path**: Show the error message from the hook and display usage help.
+
+#### mode: new, status: success
+
+1. Make ONE Edit call: add the `new_row` value to `tracking/projects-log.md` in the Active Projects table — insert the row **before** the blank line that precedes the `---` separator (i.e., as the last row of the table, before the section break).
+2. Then confirm:
+```
+Created new project: [project_path]
+
+Directory: projects/[project_path]/
+Status: Seeding
+
+Next steps:
+  /intake    — Start capturing requirements
+  /process   — Feed in existing documents or transcripts
+```
+
+If the hook included a `warning:` line, mention it.
+
+#### mode: new, status: error
+
+- **already_exists**: Report that the project exists. Suggest `/project [path]` to set it as current.
+- **invalid_path**: Show the error message and display usage help.
+- **missing_path**: Show usage: `/project new client/project`
+
+---
+
+### Without Hook Results (Fallback)
+
+If no `[project-context-hook]` block is found in context, perform operations manually:
+
 Parse the arguments to determine the mode:
 
-### Mode 1: No Arguments (Show)
+#### Mode 1: No Arguments (Show)
 
 If `$ARGUMENTS` is empty:
 
@@ -53,7 +124,7 @@ If `$ARGUMENTS` is empty:
 
 ---
 
-### Mode 2: Set Current (client/project argument, no "new")
+#### Mode 2: Set Current (client/project argument, no "new")
 
 If `$ARGUMENTS` contains a path like `client/project` (no "new" prefix):
 
@@ -74,7 +145,7 @@ If `$ARGUMENTS` contains a path like `client/project` (no "new" prefix):
 
 ---
 
-### Mode 3: Create New (starts with "new")
+#### Mode 3: Create New (starts with "new")
 
 If `$ARGUMENTS` starts with `new `:
 
@@ -110,7 +181,7 @@ If `$ARGUMENTS` starts with `new `:
 
 8. **Add entry to `tracking/projects-log.md`**:
    - Add a row to the Active Projects table
-   - Set status to `seeding`
+   - Set status to `Seeding`
    - Set created date to today
    - Leave last session and notes empty
 
@@ -119,7 +190,7 @@ If `$ARGUMENTS` starts with `new `:
    Created new project: [client/project]
 
    Directory: projects/[client]/[project]/
-   Status: seeding
+   Status: Seeding
 
    Next steps:
      /intake    — Start capturing requirements
@@ -128,7 +199,7 @@ If `$ARGUMENTS` starts with `new `:
 
 ---
 
-## Error Handling
+### Error Handling
 
 - If arguments don't match any mode, show usage help
 - If project path is malformed, explain the expected format

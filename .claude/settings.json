@@ -2,5 +2,18 @@
   "statusLine": {
     "type": "command",
     "command": "input=$(cat); cwd=$(echo \"$input\" | jq -r '.workspace.current_dir'); project=$(cat \"$cwd/tracking/current-project.md\" 2>/dev/null | tr -d '\\n'); git_branch=$(git -C \"$cwd\" -c core.fileMode=false branch --show-current 2>/dev/null); if [ -n \"$project\" ] && [ -n \"$git_branch\" ]; then echo \"project-creator | $project [$git_branch]\"; elif [ -n \"$project\" ]; then echo \"project-creator | $project\"; else echo \"project-creator\"; fi"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/project-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }
