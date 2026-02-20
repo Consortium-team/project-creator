@@ -28,72 +28,71 @@ Store the project path (e.g., `acme-corp/api-service`) and the full directory pa
 
 ---
 
-### Step 2: Load Ticket Data and Check for Prior Progress
+### Step 2: Load Ticket Data and Validate Schema
 
-**Prefer local tickets.yaml:**
+**Load tickets.yaml:**
 
 1. Check for `projects/[client]/[project]/docs/plans/tickets.yaml`
-2. If exists, parse ticket data from there (more reliable than Linear markdown)
-3. If not exists, fall back to reading from Linear (see Legacy Linear section below)
-4. Load the spec file path from tickets.yaml metadata
+2. If not exists, STOP:
+   ```
+   No tickets.yaml found for [project].
+   Run /plan first to create tickets.
+   ```
+3. Parse the file and extract:
+   - `project_path` — absolute path to project directory
+   - `spec_file` — relative path to implementation spec
+   - `linear_parent_issue` — parent Linear issue
+   - `tickets` — list of ticket objects
+
+**Validate schema (MANDATORY — do not skip):**
+
+Check that tickets.yaml has the required structure. For each ticket, verify these fields exist:
+
+| Field | Check |
+|-------|-------|
+| `id` | integer (1, 2, 3...) |
+| `title` | non-empty string |
+| `status` | one of: pending, in_progress, completed, skipped |
+| `blocked_by` | list (may be empty) |
+| `description` | non-empty string |
+| `input_files` | list (may be empty) |
+| `output_files` | list with at least one entry |
+| `acceptance_criteria` | list with at least one entry |
+
+Also verify top-level fields exist:
+- `project_path` — must be an absolute path that exists on disk
+- `spec_file` — must point to a file that exists
+
+**If validation fails, STOP:**
+```
+## tickets.yaml Schema Validation Failed
+
+Missing or malformed fields:
+- [list each problem]
+
+Fix tickets.yaml or re-run /plan to regenerate it.
+```
+
+**Do NOT proceed with a malformed tickets.yaml.** This is the #1 cause of silent build failures.
+
+**Declare collected values:**
+```
+Step 2 Complete. Loaded ticket data:
+- Project path: [project_path value]
+- Spec file: [spec_file value]
+- Linear parent: [linear_parent_issue value]
+- Total tickets: [N]
+- Schema validation: PASSED
+```
 
 **Check for prior progress:**
 
 Check `projects/[client]/[project]/docs/plans/build-progress.md` for prior progress:
-- If some tickets show `completed`, skip them
+- If some tickets show `completed`, verify those output files still exist on disk
+- If output files exist, skip those tickets
+- If output files are missing despite "completed" status, reset those tickets to `pending`
 - Resume from first `pending` ticket
-- Report: "Resuming build from ticket #N (tickets 1-M already complete)"
-
-**tickets.yaml structure:**
-
-```yaml
-project:
-  name: [project name]
-  path: [absolute path to project directory]
-  spec: [relative path to implementation spec]
-
-tickets:
-  - id: 1
-    title: [ticket title]
-    description: |
-      [full description]
-    acceptance_criteria:
-      - [criterion 1]
-      - [criterion 2]
-    input_files:
-      - [relative path]
-    output_files:
-      - [relative path]
-    dependencies: []  # list of ticket IDs this depends on
-    status: pending   # pending, in_progress, completed, skipped
-  - id: 2
-    ...
-```
-
-**If no tickets.yaml exists:**
-
-Look for a plan file at `projects/[client]/[project]/docs/plans/*-implementation-spec.md`
-
-If no spec exists:
-```
-No implementation plan found for [project].
-
-Run /plan first to create tickets from your requirements.
-```
-
-**Legacy Linear fallback:**
-
-Use the Linear MCP tools to find the project:
-1. Call `mcp__linear__linear_getProjects` to list projects
-2. Find the project matching this build (by name or stored project ID in the spec)
-3. Call `mcp__linear__linear_getProjectIssues` to get all issues
-
-If no Linear project or no tickets found:
-```
-No tickets found for [project].
-
-Check that /plan completed successfully and created tickets.
-```
+- Report: "Resuming build from ticket #N (tickets 1-M already complete and verified)"
 
 ---
 
@@ -144,6 +143,17 @@ Proceed with build? (yes/no)
 
 If user says no, ask what they'd like to adjust.
 
+**After user confirms, set parent ticket to In Progress:**
+
+If `linear_parent_issue` exists in tickets.yaml, update it to "In Progress":
+
+1. Get the "In Progress" state ID from workflow states (using `mcp__linear__linear_getWorkflowStates`)
+2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [in_progress_state_id]`
+
+```
+Build started — [linear_parent_issue] → In Progress
+```
+
 ---
 
 ### Step 5: Execute Tickets Sequentially
@@ -172,90 +182,256 @@ Use `mcp__linear__linear_getIssueById` with the ticket ID to get:
 - Acceptance criteria
 - Any comments with additional context
 
+#### 5b-ii. Update Linear Status to In Progress
+
+If the ticket has a `linear_id`, update its status to "In Progress":
+
+1. Get the team's workflow states using `mcp__linear__linear_getWorkflowStates` (team ID from prior lookup)
+2. Find the state ID for "In Progress"
+3. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [in_progress_state_id]`
+
+```
+Ticket [#]: [Title] — Linear status → In Progress
+```
+
 #### 5c. Invoke Ticket Executor Agent
 
-Invoke the `ticket-executor` agent with:
+**This step uses the Task tool to spawn a real subagent. Do NOT simulate or reason about what the agent would do.**
 
-**Project Directory:** [absolute path from tickets.yaml]
-**Implementation Spec:** [spec path from tickets.yaml]
-**Ticket:** [title]
-**Description:** [full description]
-**Acceptance Criteria:**
-[list from tickets.yaml]
-**Input Files:**
-[list from tickets.yaml]
-**Output Files:**
-[list from tickets.yaml]
+**Step 5c-i: Read the agent definition**
 
-Wait for executor to complete and return its execution report.
+Read `.claude/agents/ticket-executor.md`. Extract from frontmatter:
+- `model:` — the model to use (e.g., opus)
+- `tools:` — available tools (for reference)
+
+**Step 5c-ii: Build the complete prompt**
+
+Construct the full prompt with ALL actual values filled in. No placeholders.
+
+```
+You are the ticket-executor agent. Your job is to implement a single ticket.
+
+## Project Context
+
+**Project Directory:** [ACTUAL absolute path from project_path]
+**Implementation Spec:** [ACTUAL absolute path: project_path + "/" + spec_file]
+
+## Ticket: [ACTUAL title from tickets.yaml]
+
+**Description:**
+[ACTUAL description from tickets.yaml — full text, not a reference]
+
+## Acceptance Criteria
+
+[ACTUAL acceptance_criteria list from tickets.yaml, numbered]
+1. [criterion 1]
+2. [criterion 2]
+...
+
+## Input Files (read these for context)
+
+[ACTUAL input_files from tickets.yaml, as absolute paths: project_path + "/" + each path]
+- [absolute path 1]
+- [absolute path 2]
+...
+
+## Output Files (create or modify these)
+
+[ACTUAL output_files from tickets.yaml, as absolute paths: project_path + "/" + each path]
+- [absolute path 1]
+...
+
+## Instructions
+
+1. Read the implementation spec for architecture context
+2. Read all input files
+3. Implement the changes — create/modify the output files
+4. Self-check against each acceptance criterion
+5. Return your execution report in the format below
+
+## Report Format
+
+Return EXACTLY this format:
+
+**Status:** COMPLETED | PARTIAL | BLOCKED
+
+**Files Created:**
+- [absolute path]
+
+**Files Modified:**
+- [absolute path]
+
+**Acceptance Criteria Status:**
+- [x] [Criterion] — [how it was met]
+- [ ] [Criterion] — [why not met]
+
+**Issues Encountered:**
+- [any problems]
+```
+
+**Step 5c-iii: Show the prompt to the user**
+
+Display the constructed prompt so the user can verify all values are correct.
+
+**Step 5c-iv: Dispatch via Task tool**
+
+```
+Task tool call:
+  subagent_type: general-purpose
+  model: [from agent frontmatter, e.g., "opus"]
+  description: "Execute ticket [#]: [short title]"
+  prompt: [the complete prompt from step 5c-ii]
+```
+
+Wait for the Task tool to return the executor's report.
 
 #### 5d. Invoke Ticket Verifier Agent
 
-Invoke the `ticket-verifier` agent with:
+**Same pattern: real Task tool dispatch, not simulation.**
 
-**Project Directory:** [absolute path]
+**Step 5d-i: Read the agent definition**
+
+Read `.claude/agents/ticket-verifier.md`. Extract `model:` from frontmatter (e.g., sonnet).
+
+**Step 5d-ii: Build the verifier prompt**
+
+```
+You are the ticket-verifier agent. You verify that a ticket was correctly implemented. You do NOT make changes — only observe and report.
+
+## Project Directory
+
+[ACTUAL absolute path from project_path]
+
+## Expected Output Files
+
+[ACTUAL output_files as absolute paths]
+- [absolute path 1]
+...
+
+## Acceptance Criteria
+
+[ACTUAL acceptance_criteria, numbered]
+1. [criterion 1]
+2. [criterion 2]
+...
+
+## Executor's Report
+
+[PASTE the executor's actual report from Step 5c]
+
+## Instructions
+
+1. Check that each expected output file EXISTS on disk (use Glob or Read)
+2. Read each file and verify it meets the acceptance criteria
+3. Cross-reference the executor's claims against actual file contents
+4. Return your verification report
+
+## Report Format
+
+**Status:** PASS | FAIL | PARTIAL
+
+**Files Verified:**
+- [path] — EXISTS | MISSING — [notes]
+
 **Acceptance Criteria:**
-[list from tickets.yaml]
-**Expected Output Files:**
-[list from tickets.yaml]
-**Executor Report:**
-[paste executor's execution report]
+- [x] [Criterion] — VERIFIED — [evidence]
+- [ ] [Criterion] — FAILED — [what's wrong]
 
-Wait for verifier response.
+**Recommendation:** PROCEED | RETRY | ESCALATE
 
-#### 5e. Handle Verifier Results
+**Issues Found:**
+- [specific problems]
+```
 
-Based on verifier recommendation:
+**Step 5d-iii: Dispatch via Task tool**
 
-- **PROCEED:** Continue to next ticket
+```
+Task tool call:
+  subagent_type: general-purpose
+  model: [from agent frontmatter, e.g., "sonnet"]
+  description: "Verify ticket [#]: [short title]"
+  prompt: [the complete verifier prompt]
+```
+
+#### 5e. Orchestrator File-Existence Check (MANDATORY)
+
+**After the verifier returns, the orchestrator MUST independently verify that output files exist.**
+
+This is a hard guardrail. Even if the verifier says "PASS", check yourself:
+
+```bash
+ls -la [project_path]/[output_file_1]
+ls -la [project_path]/[output_file_2]
+...
+```
+
+For EACH output file in the ticket's `output_files` list:
+- If file exists and is non-empty → CONFIRMED
+- If file is missing or empty → FAIL (regardless of what executor/verifier claimed)
+
+**If any output file is missing:**
+```
+## Orchestrator Check FAILED
+
+Ticket [#]: [Title]
+Executor claimed: COMPLETED
+Verifier claimed: PASS
+But these files do not exist:
+- [missing file 1]
+- [missing file 2]
+
+This means the executor simulated the work instead of executing it.
+Retrying with explicit instructions...
+```
+
+Then retry (see 5f).
+
+#### 5f. Handle Results
+
+Based on verifier recommendation AND orchestrator file check:
+
+- **PROCEED (verifier PASS + all files confirmed):** Continue to next ticket
 - **RETRY:**
-  1. Pass verifier's issues to executor
-  2. Re-run executor with: "Previous attempt had issues: [verifier feedback]. Fix these specific problems."
+  1. Pass verifier's issues AND orchestrator's missing files to executor
+  2. Re-run executor with: "Previous attempt failed. These specific problems must be fixed: [list]. These files MUST exist on disk after you finish: [list]."
   3. Re-run verifier
-  4. Max 2 retries, then escalate
+  4. Re-run orchestrator file check
+  5. Max 2 retries, then escalate
 - **ESCALATE:** Stop and present issues to user
 
-#### 5f. Update Local Progress
+#### 5g. Update Local Progress (ONLY after file-existence confirmed)
 
-After each ticket completes:
+**NEVER update build-progress.md until Step 5e confirms files exist.**
+
+After each ticket completes AND files are confirmed:
 
 Update `projects/[client]/[project]/docs/plans/build-progress.md`:
 - Change ticket status from `pending` to `completed`
 - Add timestamp
 - Log any issues that were resolved
 
+Update `tickets.yaml`:
+- Change the ticket's `status` from `pending` to `completed`
+
 This enables recovery if context is lost mid-build.
-
-**build-progress.md format:**
-
-```markdown
-# Build Progress
-
-**Started:** [timestamp]
-**Last Updated:** [timestamp]
-
-## Tickets
-
-| # | Title | Status | Completed At | Notes |
-|---|-------|--------|--------------|-------|
-| 1 | [Title] | completed | 2024-01-15 10:30 | |
-| 2 | [Title] | completed | 2024-01-15 10:45 | Retry needed - missing import |
-| 3 | [Title] | pending | | |
-...
-
-## Issues Resolved
-
-- Ticket #2: Missing import statement, fixed on retry
-```
 
 Also report progress:
 ```
 Ticket [#]/[total] complete: [Title]
-- Files created: [list]
-- Files modified: [list]
+- Files confirmed on disk: [list]
+- Issues resolved: [list, if any]
 ```
 
-Optionally add a comment to the Linear ticket noting completion (if using Linear).
+**Update Linear status to Done:**
+
+If the ticket has a `linear_id`, update its status to "Done":
+
+1. Get the "Done" state ID from workflow states (cached from earlier lookup)
+2. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [done_state_id]`
+
+```
+Ticket [#]: [Title] — Linear status → Done
+```
 
 ---
 
@@ -340,6 +516,17 @@ After all tickets complete (or are skipped):
 The project is ready for review.
 ```
 
+**Set parent ticket to Done:**
+
+If `linear_parent_issue` exists, update it to "Done":
+
+1. Get the "Done" state ID from workflow states (cached from earlier lookup)
+2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [done_state_id]`
+
+```
+Build complete — [linear_parent_issue] → Done
+```
+
 ---
 
 ### Step 8: Update Reference Projects (if project type was used)
@@ -413,11 +600,33 @@ After the build completes, check whether this project was created from a project
 
 ## Key Principles
 
+### Execute, Don't Simulate
+
+**The #1 failure mode is reasoning about what agents would do instead of dispatching them.**
+
+When this command says "invoke the executor agent", it means:
+1. Read the agent definition file
+2. Build a complete prompt with actual values
+3. Call the Task tool with the correct model
+4. Wait for the real result
+
+It does NOT mean: imagine what the agent would produce and write a plausible report.
+
+### Three-Layer Verification
+
+Never trust a single source of truth:
+1. **Executor claims** it created files → but maybe it simulated
+2. **Verifier confirms** files meet criteria → but maybe it also simulated
+3. **Orchestrator checks** files exist on disk → this is the hard truth
+
+All three must pass. The orchestrator file check (Step 5e) is the final gate.
+
 ### Stay Lightweight
 
 The orchestrator (this main conversation) should:
-- Dispatch work to executor agent
-- Dispatch verification to verifier agent
+- Dispatch work to executor agent via Task tool
+- Dispatch verification to verifier agent via Task tool
+- Independently verify file existence
 - Handle failures and retries
 - Track progress locally
 
@@ -428,23 +637,18 @@ The orchestrator should NOT:
 
 ### Agent Separation
 
-- **Executor:** Implements the ticket, creates/modifies files
-- **Verifier:** Checks that implementation meets acceptance criteria
-- **Orchestrator:** Coordinates, tracks progress, handles failures
-
-This separation ensures:
-- Clear responsibility boundaries
-- Independent verification
-- Reliable retry logic
+- **Executor:** Implements the ticket, creates/modifies files (dispatched via Task tool, model from frontmatter)
+- **Verifier:** Checks that implementation meets acceptance criteria (dispatched via Task tool, model from frontmatter)
+- **Orchestrator:** Coordinates, tracks progress, verifies file existence, handles failures
 
 ### Context Isolation
 
 Each agent invocation gets:
-- Fresh context window
-- ALL necessary information in the prompt
+- Fresh context window via Task tool
+- ALL necessary information in the prompt (absolute paths, full descriptions)
 - No assumptions about what they "know"
 
-This means prompts must be self-contained with full paths and complete descriptions.
+This means prompts must be self-contained with full paths and complete descriptions. Never pass placeholder values.
 
 ### Sequential by Default
 
@@ -457,10 +661,10 @@ Parallel execution is a future optimization — don't attempt it now.
 
 ### Verify Before Proceeding
 
-Never assume a ticket completed successfully. The verifier agent must confirm:
-- Output files exist and have expected content
-- Acceptance criteria are met
-- No errors were encountered
+Never assume a ticket completed successfully:
+- Executor report says COMPLETED → verify with verifier
+- Verifier report says PASS → verify files exist on disk
+- Files exist on disk → NOW mark complete
 
 ---
 
@@ -468,13 +672,16 @@ Never assume a ticket completed successfully. The verifier agent must confirm:
 
 | Situation | Response |
 |-----------|----------|
-| No tickets.yaml or spec | "Run /plan first" |
-| No tickets found | "No tickets found - check plan output" |
+| No tickets.yaml | "Run /plan first" |
+| tickets.yaml schema invalid | "Schema validation failed — list problems, stop" |
+| project_path doesn't exist | "Project directory not found — check path" |
 | Executor timeout | Retry once, then escalate |
 | Verifier returns RETRY | Retry with feedback, max 2 times |
 | Verifier returns ESCALATE | Present issues to user |
+| Orchestrator file check fails | Retry — executor simulated instead of executing |
+| "Completed" tickets missing files | Reset to pending, re-execute |
 | User aborts | Summarize progress, suggest next steps |
-| Resuming partial build | Skip completed tickets, start from first pending |
+| Resuming partial build | Verify completed ticket files exist, then resume from first pending |
 
 ---
 

@@ -20,6 +20,111 @@ You are a **collaborator for project creation**, not a generator. Your job is to
 
 ---
 
+## CRITICAL: Command Execution Protocol
+
+**READ THIS FIRST. This overrides all other instructions.**
+
+### The Problem
+
+Claude has a tendency to reason about command specifications instead of executing them. This causes:
+
+- Wrong models used (Sonnet instead of Opus)
+- Agent work simulated instead of dispatched
+- Phases skipped or reordered
+- Improvised workflows that waste tokens
+- Tickets marked "completed" without files being created
+
+### The Solution: Execute, Don't Interpret
+
+When a command is invoked (e.g., `/plan`, `/build`, `/intake`), you MUST:
+
+**1. Read the command definition completely**
+- Location: `.claude/commands/[command-name].md`
+- Identify all steps (Step 1, Step 2, Step 3, etc.)
+- Note exact substeps within each step
+
+**2. Execute steps IN ORDER, following EXACT instructions**
+- Do Step 1, then Step 2, then Step 3
+- Do NOT skip steps
+- Do NOT reorder steps
+- Do NOT improvise alternatives
+
+**3. Declare collected values BEFORE proceeding to next step**
+- After data-gathering steps, output collected values explicitly
+- User must SEE the values before you proceed
+- Example:
+
+```
+Step 2 Complete. Collected values:
+- Project: consortium.team/consortiumteam-website
+- Project path: /absolute/path/to/project
+- Spec file: docs/plans/2026-02-11-implementation-spec.md
+- Tickets to execute: 11
+```
+
+**4. When command says "Invoke [agent-name] agent":**
+
+a. First: Read the agent definition at `.claude/agents/[agent-name].md`
+b. Check agent frontmatter for:
+   - `model:` (opus/sonnet/haiku) — USE THIS MODEL
+   - `tools:` (list of tools) — agent will have access to these
+c. Build complete prompt with all placeholders replaced:
+   - Write out the FULL prompt text with actual values
+   - Show it to user (they can verify it's correct)
+d. Call Task tool with:
+   - `subagent_type: general-purpose`
+   - `model:` [from agent frontmatter]
+   - `description:` [brief description]
+   - `prompt:` [the complete prompt you built in step c]
+
+**5. After any agent returns, verify its claims:**
+- If agent says it created files, CHECK that those files exist
+- If agent says "COMPLETED", confirm output files are on disk
+- NEVER mark a ticket complete based solely on an agent's report
+- Use Glob or Bash `ls` to verify file existence
+
+**6. Trust the specifications:**
+- If spec says use Opus, use Opus (not Sonnet)
+- If spec says do Step 1 then Step 2, do them in that order
+- If spec says pass these parameters, pass EXACTLY those parameters
+- If spec defines a schema, follow it EXACTLY — no camelCase when it says snake_case
+
+### Non-Negotiable Rules
+
+**NEVER:**
+- Skip validation steps
+- Use wrong model (check agent frontmatter)
+- Tell agent to "read your definition" (you read it, pass correct params)
+- Pass placeholder values like `[PATH_FROM_STEP_1]` to Task tool
+- Improvise your own workflow
+- Reason about what a command "means" instead of executing it
+- Mark a ticket "completed" without verifying output files exist on disk
+
+**ALWAYS:**
+- Execute commands step by step, in order
+- Read agent frontmatter before invoking
+- Declare collected values before proceeding
+- Build complete prompts with actual values
+- Verify file existence after agent claims completion
+- Follow schemas EXACTLY as specified (field names, casing, structure)
+
+### Why This Matters
+
+Following this protocol:
+- Gets correct results on first attempt
+- Uses correct models and skills
+- Minimizes token waste
+- Takes 2–3 minutes instead of 20+ minutes
+
+Not following this protocol:
+- Requires 2–3 regenerations
+- Wastes 50K+ tokens per attempt
+- Produces no actual output (tickets "completed" with no files created)
+
+**This is the most important instruction in this CLAUDE.md file.** If you remember only one thing: EXECUTE commands step by step. Do not reason about them.
+
+---
+
 ## The Parent-Child Pattern
 
 Project Creator is a **meta-project** that manages sub-projects.
@@ -255,7 +360,7 @@ Consolidates captured requirements into an implementation plan with Linear ticke
 - Each ticket must be completable in a single context session
 - Size: S (small) or M (medium) only — no L tickets
 - Must have: acceptance criteria, input files, output files
-- Dependencies marked with `blockedBy`
+- Dependencies marked with `blocked_by`
 
 **Output:** User reviews and approves plan before `/build` can proceed.
 
