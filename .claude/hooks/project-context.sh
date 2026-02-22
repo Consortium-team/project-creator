@@ -25,7 +25,7 @@ fi
 # --- Fast path: skip non-/project prompts ---
 
 FIRST_LINE=$(echo "$PROMPT" | head -1)
-if ! echo "$FIRST_LINE" | grep -q '# /project'; then
+if ! echo "$FIRST_LINE" | grep -qE '^# /project( |$)'; then
   exit 0
 fi
 
@@ -37,7 +37,7 @@ TRACKING_DIR="$PROJECT_DIR/tracking"
 CURRENT_FILE="$TRACKING_DIR/current-project.md"
 
 # Extract arguments from the ## Argument: line
-ARGS=$(echo "$PROMPT" | grep -m1 '^## Argument:' | sed 's/^## Argument: *//' | sed 's/[[:space:]]*$//')
+ARGS=$(echo "$PROMPT" | grep -m1 '^## Argument:' | sed 's/^## Argument: *//' | sed 's/[[:space:]]*$//' || true)
 
 # --- Helpers ---
 
@@ -164,18 +164,33 @@ message: Failed to create project directories
 
   # Init git
   GIT_WARNING=""
+  GIT_OK=true
   if ! git init --quiet "$PROJECT_PATH" 2>/dev/null; then
     GIT_WARNING="
 warning: git init failed"
+    GIT_OK=false
   fi
 
   # Update current project
+  TRACKING_OK=true
   if ! echo "$PATH_ARG" > "$CURRENT_FILE" 2>/dev/null; then
     GIT_WARNING="${GIT_WARNING}
 warning: failed to update current-project.md"
+    TRACKING_OK=false
   fi
 
   TODAY=$(date +%Y-%m-%d)
+
+  ACTIONS="  - Created projects/$CLIENT/$PROJECT_NAME/
+  - Created projects/$CLIENT/$PROJECT_NAME/context/"
+  if [ "$GIT_OK" = true ]; then
+    ACTIONS="$ACTIONS
+  - Initialized git repository"
+  fi
+  if [ "$TRACKING_OK" = true ]; then
+    ACTIONS="$ACTIONS
+  - Updated tracking/current-project.md"
+  fi
 
   RESULT="[project-context-hook]
 mode: new
@@ -183,10 +198,7 @@ status: success
 project_path: $PATH_ARG
 created_date: $TODAY
 actions_taken:
-  - Created projects/$CLIENT/$PROJECT_NAME/
-  - Created projects/$CLIENT/$PROJECT_NAME/context/
-  - Initialized git repository
-  - Updated tracking/current-project.md
+$ACTIONS
 remaining_action: Update tracking/projects-log.md
 new_row: | $CLIENT | $PROJECT_NAME | Seeding | $TODAY |$GIT_WARNING
 [/project-context-hook]"
