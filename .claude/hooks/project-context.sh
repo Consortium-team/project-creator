@@ -45,7 +45,7 @@ read_current() {
   if [ -f "$CURRENT_FILE" ]; then
     local val
     val=$(tr -d '[:space:]' < "$CURRENT_FILE")
-    if [ -n "$val" ] && [ "$val" != "Noprojectcurrentlyset" ]; then
+    if [ -n "$val" ] && validate_path "$val"; then
       echo "$val"
       return
     fi
@@ -83,11 +83,11 @@ list_projects() {
 }
 
 validate_path() {
-  echo "$1" | grep -qE '^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$'
+  echo "$1" | grep -qE '^[a-z0-9]([a-z0-9-]*[a-z0-9])?/[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
 }
 
 output() {
-  printf '{"additionalContext": %s}' "$(echo "$1" | jq -Rs .)"
+  printf '{"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": %s}}' "$(echo "$1" | jq -Rs .)"
 }
 
 # --- Mode dispatch ---
@@ -150,9 +150,17 @@ message: Project already exists. Use /project $PATH_ARG to set it as current.
     exit 0
   fi
 
-  # Create directories
-  mkdir -p "$TRACKING_DIR"
-  mkdir -p "$PROJECT_PATH/context"
+  # Create directories (guarded — set -e must not cause unstructured exit)
+  if ! mkdir -p "$TRACKING_DIR" 2>/dev/null || ! mkdir -p "$PROJECT_PATH/context" 2>/dev/null; then
+    RESULT="[project-context-hook]
+mode: new
+status: error
+error_type: filesystem_error
+message: Failed to create project directories
+[/project-context-hook]"
+    output "$RESULT"
+    exit 0
+  fi
 
   # Init git
   GIT_WARNING=""
@@ -162,7 +170,10 @@ warning: git init failed"
   fi
 
   # Update current project
-  echo "$PATH_ARG" > "$CURRENT_FILE"
+  if ! echo "$PATH_ARG" > "$CURRENT_FILE" 2>/dev/null; then
+    GIT_WARNING="${GIT_WARNING}
+warning: failed to update current-project.md"
+  fi
 
   TODAY=$(date +%Y-%m-%d)
 
@@ -221,9 +232,27 @@ $PROJECTS
   # Read previous before updating
   PREVIOUS=$(read_current)
 
-  # Update current project
-  mkdir -p "$TRACKING_DIR"
-  echo "$PATH_ARG" > "$CURRENT_FILE"
+  # Update current project (guarded — set -e must not cause unstructured exit)
+  if ! mkdir -p "$TRACKING_DIR" 2>/dev/null; then
+    RESULT="[project-context-hook]
+mode: set
+status: error
+error_type: filesystem_error
+message: Failed to create tracking directory
+[/project-context-hook]"
+    output "$RESULT"
+    exit 0
+  fi
+  if ! echo "$PATH_ARG" > "$CURRENT_FILE" 2>/dev/null; then
+    RESULT="[project-context-hook]
+mode: set
+status: error
+error_type: filesystem_error
+message: Failed to update current-project.md
+[/project-context-hook]"
+    output "$RESULT"
+    exit 0
+  fi
 
   RESULT="[project-context-hook]
 mode: set

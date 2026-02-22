@@ -30,7 +30,7 @@ Read the `mode` and `status` fields from the `[project-context-hook]` block and 
 
 Format and display the project listing from the hook data:
 
-```
+```text
 Current project: [current_project value] (or "None" if "none")
 
 Available projects:
@@ -38,7 +38,7 @@ Available projects:
 ```
 
 If projects list shows `(none)`:
-```
+```text
 Current project: None
 
 No projects yet. Create one with:
@@ -48,7 +48,7 @@ No projects yet. Create one with:
 #### mode: set, status: success
 
 Confirm the change:
-```
+```text
 Current project set to: [project_path]
 ```
 If `previous_project` differs from `project_path`, add: `(was: [previous_project])`
@@ -62,7 +62,7 @@ If `previous_project` differs from `project_path`, add: `(was: [previous_project
 
 1. Make ONE Edit call: add the `new_row` value to `tracking/projects-log.md` in the Active Projects table — insert the row **before** the blank line that precedes the `---` separator (i.e., as the last row of the table, before the section break).
 2. Then confirm:
-```
+```text
 Created new project: [project_path]
 
 Directory: projects/[project_path]/
@@ -103,7 +103,7 @@ If `$ARGUMENTS` is empty:
    - Mark the current project with `*` if one is set
 
 3. **Display** in this format:
-   ```
+   ```text
    Current project: [client/project] (or "None")
 
    Available projects:
@@ -115,7 +115,7 @@ If `$ARGUMENTS` is empty:
    ```
 
    If no projects exist yet:
-   ```
+   ```text
    Current project: None
 
    No projects yet. Create one with:
@@ -133,13 +133,13 @@ If `$ARGUMENTS` contains a path like `client/project` (no "new" prefix):
    - Suggest: "Did you mean `/project new [client/project]` to create it?"
 
 2. **Update `tracking/current-project.md`** with just the project path:
-   ```
+   ```text
    client/project
    ```
    (Replace the entire file contents with just this line)
 
 3. **Confirm** the change:
-   ```
+   ```text
    Current project set to: [client/project]
    ```
 
@@ -186,7 +186,7 @@ If `$ARGUMENTS` starts with `new `:
    - Leave last session and notes empty
 
 9. **Confirm** the creation:
-   ```
+   ```text
    Created new project: [client/project]
 
    Directory: projects/[client]/[project]/
