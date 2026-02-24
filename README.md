@@ -102,7 +102,7 @@ cd project-creator
 
 # Start the intake conversation
 /intake                         # General intake
-/intake product-manager         # Or specify a project type (see below)
+/intake product-manager         # Or specify a persona (see below)
 
 # (Answer questions as Claude draws out your requirements)
 
@@ -179,7 +179,7 @@ flowchart TD
 
 # 2. Seed: Capture requirements
 /intake                    # Interactive requirements gathering
-/intake product-manager    # ...or use a project type for accelerated intake
+/intake product-manager    # ...or use a persona for accelerated intake
 /process                   # Feed in existing documents
 /gaps                      # Check what's missing
 
@@ -199,7 +199,7 @@ Project creation happens in phases:
 
 | Phase | Focus | Commands |
 |-------|-------|----------|
-| **Seeding** | Capture requirements and context | `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint` |
+| **Seeding** | Capture requirements and context | `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint`, `/read-book`, `/contextualize` |
 | **Cultivation** | Create implementation plan | `/plan` |
 | **Shaping** | Execute plan with sub-agents | `/build` |
 
@@ -214,6 +214,8 @@ Capture enough context that a well-configured Claude Code project can be generat
 | `/process` | Handle external inputs (transcripts, docs) |
 | `/gaps` | Assessment checkpoint |
 | `/checkpoint` | Session capture |
+| `/read-book` | Read and annotate a book via Kindle Cloud Reader |
+| `/contextualize` | Generate companion-specific reference from library notes |
 
 ### Phase 2: Cultivation
 
@@ -243,6 +245,110 @@ Execute the implementation plan with specialized sub-agents.
 - Uses `ticket-verifier` agent (Sonnet) to verify completion
 - Tracks progress in `build-progress.md`
 - Recovers from interruptions automatically
+
+---
+
+## Advanced Guide
+
+### Companion Architecture
+
+Project Creator builds **companions** — Claude Code projects composed from reusable components. Each companion is assembled from a **persona** (the "who"), **capabilities** (the "what"), and optionally **library materials** (domain knowledge from books).
+
+```
+companions/
+├── public/                  ← Shared across all orgs (committed to repo)
+│   ├── personas/            ← The "who" of a companion
+│   │   ├── product-manager/
+│   │   ├── software-developer/
+│   │   └── game-designer/
+│   └── capabilities/        ← The "what" a companion can do
+│       ├── reverse-prompting/
+│       ├── context-ecosystem/
+│       ├── strategic-planning/
+│       ├── meeting-processing/
+│       ├── insight-feedback-loop/
+│       ├── mentor-framework/
+│       ├── session-hygiene/
+│       ├── craft-assessment/
+│       ├── process-evolution/
+│       └── knowledge-zones/
+└── private/[org]/           ← Org-specific (git-ignored)
+    ├── personas/
+    ├── capabilities/
+    └── library/             ← Book notes organized by subject
+        └── [subject]/
+            └── [book]/
+                ├── notes.md
+                ├── synthesis.md
+                └── metadata.yaml
+```
+
+**How components flow into a companion project:**
+
+```mermaid
+flowchart LR
+    subgraph Components["Companion Components"]
+        P["Persona"]
+        C["Capabilities"]
+        L["Library Materials"]
+    end
+
+    subgraph Commands["Commands"]
+        I["/intake"]
+        RB["/read-book --library"]
+        CTX["/contextualize"]
+    end
+
+    subgraph Project["Companion Project"]
+        Ctx["context/"]
+        Ref["reference/"]
+        Out["CLAUDE.md + commands + skills"]
+    end
+
+    I --> |"Discovers persona + capabilities"| Ctx
+    P --> |"Accelerates"| I
+    C --> |"Selected during"| I
+    RB --> |"Builds org library"| L
+    L --> |"Filtered by"| CTX
+    CTX --> |"Companion-specific notes"| Ref
+    Ctx --> |"/plan + /build"| Out
+    Ref --> |"/plan + /build"| Out
+```
+
+### The Library and Book Pipeline
+
+The library system has two layers for getting book knowledge into a companion:
+
+**Layer 1: Build the library** — `/read-book --library [org]` reads a book through Kindle Cloud Reader and produces comprehensive, companion-neutral notes stored in the org's library. These notes capture everything notable without filtering for any specific companion's needs. The library entry includes `notes.md` (detailed page-by-page notes), `synthesis.md` (key ideas distilled for discovery), and `metadata.yaml` (subject tags, related personas).
+
+**Layer 2: Contextualize for a companion** — `/contextualize` takes existing library notes and generates a companion-specific reference file. It reads the full `notes.md` chapter by chapter, decides what's relevant for this particular companion, rewrites those concepts with companion-specific applicability, and records what was filtered out. The output goes to `[project]/reference/`.
+
+**Direct reading** — `/read-book` (without `--library`) reads a book directly for a specific companion, producing project-specific notes in one pass. Use this when you don't need the book in the org library.
+
+**When to use which:**
+
+| Situation | Approach |
+|-----------|----------|
+| Book is useful to multiple companions | `/read-book --library` then `/contextualize` per companion |
+| Book is only for one companion | `/read-book` (project mode) |
+| Library entry already exists | `/contextualize` (no re-reading needed) |
+
+### Committing Your Work
+
+Each sub-project in `projects/` has its own independent git repository, separate from project-creator's repo. After `/build` completes (or at any point during seeding):
+
+```bash
+# Navigate to the sub-project
+cd projects/acme-corp/api-service
+
+# Standard git workflow
+git add .
+git commit -m "Initial companion build from project-creator"
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+Project-creator itself tracks its own changes separately. Changes to companion components, commands, or tracking files are committed in the project-creator repo, not in sub-project repos.
 
 ---
 
@@ -282,87 +388,148 @@ This separation ensures:
 
 ### `/intake` — New Project Reverse Prompting
 
-Starts a guided conversation to capture project requirements. Claude asks questions one at a time about:
+Starts a guided conversation to capture project requirements. Claude asks questions one at a time to draw out what's in your head.
 
-- **Purpose** — What problem does this solve?
-- **Users** — Who will use this?
-- **Success criteria** — How will we know it works?
-- **Constraints** — Technical, time, organizational limits
-- **Context** — Related systems, prior art
+| Usage | What It Does |
+|-------|--------------|
+| `/intake` | Discover persona through conversation, uses current project |
+| `/intake [persona]` | Start with a known persona for current project |
+| `/intake [persona] [client/project]` | Specify both persona and project |
 
-Captured information is written to `[project]/context/` files.
-
-**Project Type Acceleration:**
-
-You can specify a project type to accelerate intake with type-specific questions, proven directory structures, and reference implementations:
-
+**Examples:**
 ```
-/intake product-manager         # Use a known project type
-/intake                         # General intake (no type)
+/intake                                  # General intake — conversation discovers the persona
+/intake product-manager                  # Accelerate with PM-specific questions
+/intake software-developer               # Accelerate with dev-specific questions
+/intake product-manager acme/app         # Specify persona and project
 ```
 
-When a type is specified, Claude loads the type's intake guide, typical structure, and reference projects — giving you a head start based on what's worked before.
+Covers: **Purpose**, **Users**, **Success criteria**, **Constraints**, **Context**, and **The Quality** (what makes this project distinct). Captured information is written to `[project]/context/` files.
 
-**Available Public Project Types:**
+**Persona Acceleration:**
 
-| Type | Description | Use When |
-|------|-------------|----------|
-| `product-manager` | PM thinking partner for product strategy and discovery | You have a product idea and need a critical, creative PM to help discover strategy, write specs, and create implementation tickets |
-| `software-development` | Document-driven AI code generation with developer engagement at planning and review | You're building or maintaining software and want 100% AI-generated code with developer engagement at the design, planning, and code review level |
+You can specify a persona to accelerate intake with persona-specific questions, proven directory structures, and reference implementations. When specified, Claude loads the persona's intake guide, typical capabilities, and reference projects — giving you a head start based on what's worked before.
 
-Private project types may also be available in `project-types/private/`. Run `/intake` without a type to see all available options.
+**Available Public Personas:**
+
+| Persona | Description |
+|---------|-------------|
+| `product-manager` | PM thinking partner for product strategy and discovery |
+| `software-developer` | Document-driven AI code generation with developer engagement at planning and review |
+| `game-designer` | Framework-heavy game design analysis |
+
+Private personas may also exist in `companions/private/[org]/personas/`. Run `/intake` without a persona to discover which fits through conversation.
 
 ### `/onboard` — Existing Project Analysis
 
-For projects that already exist. Claude:
+For projects that already exist. Analyzes what's there and fills gaps through reverse prompting.
 
-1. Analyzes what's there (CLAUDE.md, README, commands, etc.)
-2. Reports what's FOUND vs MISSING
-3. Asks before filling gaps
-4. Uses reverse prompting to capture what's missing
+| Usage | What It Does |
+|-------|--------------|
+| `/onboard` | Analyze current project |
+| `/onboard [client/project]` | Analyze a specific project |
+
+**Examples:**
+```
+/onboard                                 # Analyze current project
+/onboard acme-corp/existing-api          # Analyze a specific project
+```
+
+Claude analyzes existing files (CLAUDE.md, README, commands, etc.), reports what's FOUND vs MISSING, asks before filling gaps, and uses reverse prompting to capture what's missing.
 
 **Prerequisite:** Clone/copy the project into `projects/[client]/[name]/` first.
 
 ### `/process` — Handle External Inputs
 
-Feed in transcripts, documents, or notes. Claude extracts:
+Feed in transcripts, documents, or notes. Claude extracts requirements, constraints, decisions, and questions, then updates project context files.
 
-- Requirements mentioned
-- Constraints identified
-- Decisions implied
-- Questions raised
+| Usage | What It Does |
+|-------|--------------|
+| `/process` | Prompts for input, uses current project |
+| `/process [client/project]` | Override project, then prompts for input |
 
-Updates project context files with structured information.
-
-**Usage:**
+**Examples:**
 ```
-/process
-(paste your transcript or notes)
-
-/process path/to/document.md
+/process                                 # Then paste text or give a file path
+/process acme-corp/api-service           # Override project, then paste input
 ```
+
+After invoking, paste text directly or provide a file path when prompted.
 
 ### `/gaps` — Assessment
 
-Checks captured context against what's needed for a complete project:
+Checks captured context against what's needed for a complete project definition. Reports gaps with priorities and suggests what to capture next.
 
-- Is the purpose clear?
-- Are users identified?
-- Are success criteria defined?
-- Are constraints captured?
-- Are key decisions documented?
+| Usage | What It Does |
+|-------|--------------|
+| `/gaps` | Assess current project |
+| `/gaps [client/project]` | Assess a specific project |
 
-Reports gaps with priorities and suggests what to capture next.
+**Examples:**
+```
+/gaps                                    # How complete is the current project?
+/gaps acme-corp/api-service              # Check a specific project
+```
 
 ### `/checkpoint` — Session Capture
 
-Run before ending a session. Claude:
+Run before ending a session to preserve progress across context boundaries.
 
-1. Summarizes what was captured
-2. Updates tracking files
-3. Notes patterns discovered
-4. Identifies next steps
-5. Prepares handoff notes
+| Usage | What It Does |
+|-------|--------------|
+| `/checkpoint` | Capture state for current project |
+| `/checkpoint [client/project]` | Capture state for a specific project |
+
+**Examples:**
+```
+/checkpoint                              # Save before ending session
+/checkpoint acme-corp/api-service        # Save a specific project's state
+```
+
+### `/read-book` — Read and Annotate a Book
+
+Reads a book through Kindle Cloud Reader, taking structured notes in batches of 10 page-flips. Two modes: **project mode** produces companion-specific notes; **library mode** produces comprehensive, companion-neutral notes for the org library.
+
+| Usage | What It Does |
+|-------|--------------|
+| `/read-book [kindle-url]` | Read for current project (project mode) |
+| `/read-book [kindle-url] [client/project]` | Read for a specific project |
+| `/read-book --library [org] [kindle-url]` | Read to org library (library mode) |
+| `/read-book --library [org] [subject] [kindle-url]` | Library mode with subject category |
+
+**Examples:**
+```
+/read-book https://read.amazon.com/?asin=B00RLQXBYS
+/read-book https://read.amazon.com/?asin=B00RLQXBYS acme/companion
+/read-book --library consortium.team https://read.amazon.com/?asin=B00RLQXBYS
+/read-book --library consortium.team creative-writing https://read.amazon.com/?asin=B00RLQXBYS
+```
+
+- **Project mode** writes to `[project]/reference/`
+- **Library mode** writes to `companions/private/[org]/library/[subject]/[book]/`
+- Resumable — if interrupted, re-invoke with the same URL to pick up where you left off
+- Requires a browser connection (Chrome extension or Playwright)
+
+### `/contextualize` — Generate Companion Reference from Library Notes
+
+Takes existing companion-neutral library notes and generates a reference file tailored to a specific companion — without re-reading the book. Processes chapter by chapter with user pacing.
+
+| Usage | What It Does |
+|-------|--------------|
+| `/contextualize [search-term]` | Find book in org library, contextualize for current project |
+| `/contextualize [search-term] [client/project]` | Override project |
+
+**Examples:**
+```
+/contextualize king                                    # Finds king-on-writing in library
+/contextualize story-structure                         # Match by subject tag
+/contextualize king consortium.team/writing-companion  # Override project
+```
+
+- Searches the org library by directory name, title, author, or subject tags
+- Filters and reframes concepts for the companion's specific needs
+- Records what was filtered out and why (reviewable)
+- Only works with books that have `complete` or `in-progress` status
 
 ### `/plan` — Create Implementation Plan
 
@@ -387,7 +554,7 @@ Executes the approved plan using sub-agents:
    - Updates `build-progress.md`
 3. Handles failures with clear attribution
 4. Recovers from interruptions automatically
-5. If a project type was used, updates the type's `reference-projects.md` with this project as a new reference
+5. If a persona was used, updates the persona's `reference-projects.md` with this project as a new reference
 
 **Prerequisite:** Run `/plan` first and approve the generated tickets.
 
@@ -404,10 +571,21 @@ project-creator/
 │   ├── current-project.md       # Which project is active
 │   ├── projects-log.md          # Registry of all projects
 │   └── patterns-discovered.md   # Learnings for future use
-├── project-types/               # Codified project types (accelerators)
-│   ├── public/                  # Open source types (committed to repo)
-│   │   └── product-manager/     # PM thinking partner for product strategy
-│   └── private/                 # Proprietary types (git-ignored)
+├── companions/                  # Component-based companion architecture
+│   ├── public/                  # Open source components (committed to repo)
+│   │   ├── personas/            # The "who" of a companion
+│   │   │   ├── product-manager/
+│   │   │   ├── software-developer/
+│   │   │   └── game-designer/
+│   │   └── capabilities/        # The "what" a companion can do
+│   │       ├── reverse-prompting/
+│   │       ├── context-ecosystem/
+│   │       └── ...              # 10 capabilities total
+│   └── private/                 # Org-specific (git-ignored)
+│       └── [org]/
+│           ├── personas/
+│           ├── capabilities/
+│           └── library/         # Book notes by subject
 ├── .claude/
 │   ├── commands/
 │   │   ├── project.md
@@ -416,13 +594,15 @@ project-creator/
 │   │   ├── process.md
 │   │   ├── gaps.md
 │   │   ├── checkpoint.md
+│   │   ├── read-book.md         # Kindle Cloud Reader integration
+│   │   ├── contextualize.md     # Library-to-companion reference
 │   │   ├── plan.md              # Cultivation phase
 │   │   └── build.md             # Shaping phase
 │   └── agents/
 │       ├── ticket-executor.md
 │       └── ticket-verifier.md
-├── templates/                   # Project templates (emerges over time)
-├── docs/                        # Planning documents
+├── templates/                   # Project archetypes (emerges over time)
+├── docs/                        # Documentation and guides
 └── projects/                    # Sub-projects (git-ignored)
     └── [client]/
         └── [project]/           # Each has its own git repo
@@ -467,11 +647,14 @@ projects/client/project/
 | Situation | Command |
 |-----------|---------|
 | Starting fresh with an idea | `/project new` then `/intake` |
-| Starting a known project type (e.g., PM) | `/project new` then `/intake product-manager` |
+| Starting with a known persona (e.g., PM) | `/project new` then `/intake product-manager` |
 | Have an existing codebase | Clone it, then `/onboard` |
 | Have meeting notes or transcripts | `/process` |
 | Want to see what's missing | `/gaps` |
 | Ending a work session | `/checkpoint` |
+| Reading a book for the org library | `/read-book --library [org] [kindle-url]` |
+| Applying library notes to a companion | `/contextualize [search-term]` |
+| Reading a book directly for a project | `/read-book [kindle-url]` |
 | Switching between projects | `/project client/name` |
 | Ready to plan implementation | `/plan` |
 | Plan approved, ready to build | `/build` |
@@ -496,60 +679,81 @@ projects/client/project/
 
 8. **`/build` is resumable** — If interrupted, just run `/build` again to continue where you left off.
 
-9. **Use project types when they fit** — Running `/intake product-manager` is faster than starting from scratch.
+9. **Use personas when they fit** — Running `/intake product-manager` is faster than starting from scratch.
+
+10. **Build the library first** — If a book will be useful to multiple companions, `/read-book --library` once then `/contextualize` per companion is more efficient than reading it multiple times.
 
 ---
 
-## Project Types
+## Companion Architecture
 
-Project types are codified patterns that accelerate intake. When you've built a particular kind of project enough times, the patterns get extracted into a type with specialized intake questions, proven directory structures, and reference implementations.
+Project Creator builds companions by composing reusable components: **personas** (the "who"), **capabilities** (the "what"), and **library materials** (domain knowledge). When you've built a particular kind of companion enough times, the patterns get extracted into a persona with specialized intake questions, proven directory structures, and reference implementations.
 
-### Available Public Types
+### Personas
 
-| Type | What It Creates | Key Pattern |
-|------|----------------|-------------|
-| **`product-manager`** | A PM thinking partner Claude project | Strategy-as-anchor: product hypothesis as decision lens, reverse prompting for discovery, three-phase methodology (Seeding → Cultivation → Shaping) |
-| **`software-development`** | A document-driven software development Claude project | Docs context ecosystem as operating system for AI code generation, developer engagement at planning/review altitude, specification-based testing, maturation model (Level 1 → Level 2) |
+A persona defines the companion's identity, voice, and domain expertise. Each persona contains:
 
-Use a type by passing it to `/intake`:
+| File | Purpose |
+|------|---------|
+| `PERSONA.md` | Identity, voice, key concepts, named behaviors |
+| `intake-guide.md` | Persona-specific intake questions (loaded automatically by `/intake`) |
+| `typical-capabilities.md` | Which capabilities this persona typically uses |
+| `typical-structure.md` | Directory layout that works for this persona |
+| `typical-commands.md` | Commands this persona usually has |
+| `reference-projects.md` | Successful implementations to learn from |
+
+**Available Public Personas:**
+
+| Persona | What It Creates | Key Pattern |
+|---------|----------------|-------------|
+| **`product-manager`** | A PM thinking partner Claude project | Strategy-as-anchor: product hypothesis as decision lens, reverse prompting for discovery, three-phase methodology |
+| **`software-developer`** | A document-driven software development Claude project | Docs context ecosystem for AI code generation, developer engagement at planning/review, specification-based testing |
+| **`game-designer`** | A framework-heavy game design Claude project | Two-layer design docs, non-optional insight capture |
+
+Use a persona by passing it to `/intake`:
 
 ```bash
 /project new my-company/my-product-pm
 /intake product-manager
 
 /project new my-company/my-web-app
-/intake software-development
+/intake software-developer
 ```
 
-### Type Structure
+### Capabilities
 
-Each type contains 5 files:
+Capabilities are the reusable behaviors a companion can have. Each capability has a `CAPABILITY.md` (what it is, when to use it) and an `integration-guide.md` (how to wire it into a companion). During `/intake`, Claude suggests which capabilities fit based on the conversation.
 
-| File | Purpose |
-|------|---------|
-| `TYPE.md` | What this type is, when to use it, what varies vs. what's universal |
-| `intake-guide.md` | Type-specific intake questions (loaded automatically by `/intake`) |
-| `typical-structure.md` | Directory layout that works for this type |
-| `typical-commands.md` | Commands this type usually has |
-| `reference-projects.md` | Successful implementations to learn from |
+**Available public capabilities:** reverse-prompting, context-ecosystem, strategic-planning, meeting-processing, insight-feedback-loop, mentor-framework, session-hygiene, craft-assessment, process-evolution, knowledge-zones.
 
-### Creating New Types
+### Library
 
-Project types emerge from successful projects. When a project pattern has been used 2+ times and the patterns are clear, extract it:
+The library stores book notes organized by subject, shared across all companions in an organization. Library entries are created by `/read-book --library` and contextualized for specific companions by `/contextualize`. Each entry has:
 
-1. Create `project-types/public/[type-name]/` (or `private/` for proprietary types)
-2. Write all 5 type files following the structure above
+- `notes.md` — Comprehensive, companion-neutral page-by-page notes
+- `synthesis.md` — Key ideas distilled (used by `/intake` to suggest relevant books)
+- `metadata.yaml` — Title, author, subject tags, related personas, status
+
+### Public vs. Private
+
+- **Public components** (`companions/public/`) are committed to the repo — personas and capabilities that are useful to anyone.
+- **Private components** (`companions/private/[org]/`) are git-ignored — org-specific personas, capabilities, and library materials.
+
+### Creating New Personas
+
+Personas emerge from successful projects. When a companion pattern has been used 2+ times and the patterns are clear, extract it:
+
+1. Create `companions/public/[persona-name]/` (or `companions/private/[org]/personas/[persona-name]/` for org-specific)
+2. Write the persona files following the structure above
 3. Add the first reference project
-4. Test it by running `/intake [type-name]` for a new project
-
-Private types live in `project-types/private/` and are git-ignored.
+4. Test it by running `/intake [persona-name]` for a new project
 
 ### A Note on Reference Projects
 
-Each type includes a `reference-projects.md` that documents successful implementations — configuration choices, key decisions, what worked, files worth studying. These are enormously helpful for accelerating future projects of the same type.
+Each persona includes a `reference-projects.md` that documents successful implementations — configuration choices, key decisions, what worked, files worth studying. These are enormously helpful for accelerating future companions of the same type.
 
-However, reference projects point to actual project paths in your `projects/` directory, which is private and git-ignored. So `reference-projects.md` is also git-ignored for public types — it wouldn't be useful to someone who doesn't have your projects.
+However, reference projects point to actual project paths in your `projects/` directory, which is private and git-ignored. So `reference-projects.md` is also git-ignored for public personas — it wouldn't be useful to someone who doesn't have your projects.
 
-**The good news:** `/build` automatically updates `reference-projects.md` after completing a build for any project that was created from a type. You don't need to do anything — each successful build adds itself as a reference for the next project of that type.
+**The good news:** `/build` automatically updates `reference-projects.md` after completing a build for any project that was created from a persona. You don't need to do anything — each successful build adds itself as a reference for the next companion of that type.
 
-When you clone this repo or start using a public type for the first time, you won't have a `reference-projects.md` yet. That's fine — the type works without it. Your first `/build` will create it.
+When you clone this repo or start using a public persona for the first time, you won't have a `reference-projects.md` yet. That's fine — the persona works without it. Your first `/build` will create it.

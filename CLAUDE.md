@@ -254,6 +254,7 @@ The goal is to **capture enough context** that a well-configured Claude Code pro
 | `/gaps` | Assess what's captured vs. what's still needed |
 | `/checkpoint` | Capture session state before ending |
 | `/read-book` | Read and annotate a book via Kindle Cloud Reader |
+| `/contextualize` | Generate companion-specific reference from library notes |
 
 ### Phase 2: Cultivation
 
@@ -368,6 +369,17 @@ End-of-session capture.
 3. Note any patterns discovered
 4. Identify concrete next steps
 5. Prepare handoff notes for potential context loss
+
+### `/contextualize`
+
+Generate a companion-specific reference file from org library notes.
+
+1. Finds the book in the org's library (`companions/private/[org]/library/`)
+2. Reads the detailed `notes.md` chapter by chapter
+3. Filters and reframes concepts for the current companion's needs
+4. Writes a companion-specific reference file to `[project]/reference/`
+
+Works with books that have `complete` or `in-progress` status in the library.
 
 ### `/plan`
 
