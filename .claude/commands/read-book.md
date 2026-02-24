@@ -1,17 +1,24 @@
 # /read-book — Read and Annotate a Book via Kindle Cloud Reader
 
-Read a book through the browser, taking structured notes to a reference file in batches of 10 page-flips. Produces a chapter-by-chapter annotated reference document with project-specific applicability notes.
+Read a book through the browser, taking structured notes in batches of 10 page-flips. Supports two modes:
+
+1. **Project mode** (default) — Produces project-specific applicability notes stored in the companion's `reference/` directory
+2. **Library mode** (`--library [org]`) — Produces comprehensive, companion-neutral notes stored in the organization's library at `companions/private/[org]/library/`
 
 ## Usage
 
 ```
-/read-book [kindle-url]                    # Read for current project
-/read-book [kindle-url] [client/project]   # Override for specific project
+/read-book [kindle-url]                              # Read for current project (project mode)
+/read-book [kindle-url] [client/project]             # Override for specific project
+/read-book --library [org] [kindle-url]              # Read to org library (library mode)
+/read-book --library [org] [subject] [kindle-url]    # Library mode with subject category
 ```
 
-**Example:**
+**Examples:**
 ```
 /read-book https://read.amazon.com/?asin=B00RLQXBYS
+/read-book --library consortium.team https://read.amazon.com/?asin=B00RLQXBYS
+/read-book --library consortium.team creative-writing https://read.amazon.com/?asin=B00RLQXBYS
 ```
 
 ## Argument: $ARGUMENTS
@@ -20,13 +27,29 @@ Read a book through the browser, taking structured notes to a reference file in 
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 0: Determine Reading Mode
+
+Parse `$ARGUMENTS` for the `--library` flag:
+
+**If `--library [org]` is present:**
+- **Library mode** — Notes are companion-neutral, stored in `companions/private/[org]/library/`
+- Extract the organization name (e.g., `consortium.team`)
+- If a subject category is provided (e.g., `creative-writing`), use it for directory placement
+- Skip Step 1 (no project needed)
+- In Steps 6-7, use library note format instead of project note format (see Step 7b)
+
+**If `--library` is NOT present:**
+- **Project mode** — Notes are companion-specific, stored in the project's `reference/` directory
+- Proceed to Step 1
+
+### Step 1: Determine the Project (Project Mode Only)
 
 1. If `$ARGUMENTS` contains a project path, use that
 2. Otherwise, read `tracking/current-project.md` for the current project
 3. If no project is set:
    ```
    No project set. Use /project to set or create one first.
+   Or use --library [org] to read to the organization's library.
    ```
 
 Store the project path and full directory path (`projects/[client]/[project]/`).
@@ -42,7 +65,14 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 
 ### Step 3: Check for Existing Reference File
 
+**In project mode:**
 1. Search `[project]/reference/` for any file containing the ASIN or that matches the book
+
+**In library mode:**
+1. Search `companions/private/[org]/library/` recursively for any file containing the ASIN or that matches the book
+2. Also check if a `metadata.yaml` already exists with a matching ASIN
+
+**In either mode:**
 2. **If a reference file exists:**
    - Read it to find the "Reading paused at page X of Y" marker at the bottom
    - Report to the user: "Picking up from page X (Y% complete). Currently in [chapter name]."
@@ -57,8 +87,10 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 1. Navigate to the Kindle URL (Step 5 handles browser connection)
 2. Once on the book, open the Table of Contents to get the book's structure
 3. Identify the book title and author from the page
+
+**In project mode:**
 4. Ask the user to confirm the reference filename (suggest: `[author-lastname]-[short-title]-notes.md`)
-5. Create the reference file with this header:
+5. Create the reference file in `[project]/reference/` with this header:
 
 ```markdown
 # [Book Title] — Key Insights
@@ -70,7 +102,36 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 ---
 ```
 
-6. Close the Table of Contents and navigate to page 1 (or the Preface/Introduction)
+**In library mode:**
+4. Determine the library directory:
+   - If subject was provided: `companions/private/[org]/library/[subject]/[author-short-title]/`
+   - If no subject: ask the user which subject category to use (e.g., `creative-writing`, `game-design`, `product-management`)
+5. Create the directory if it doesn't exist
+6. Create `notes.md` in the library directory with this header:
+
+```markdown
+# [Book Title] — Comprehensive Notes
+
+**Source:** [Author], *[Book Title]* (Kindle Edition, ASIN: [ASIN])
+**Purpose:** Companion-neutral comprehensive notes for the [org] library
+**Method:** Page-by-page reading with synthesis at chapter boundaries
+
+---
+```
+
+7. Create or update `metadata.yaml` in the same directory:
+
+```yaml
+title: "[Book Title]"
+author: "[Author]"
+asin: "[ASIN]"
+subjects: [suggested subject tags]
+related_personas: [suggested based on subject]
+source_projects: []
+status: "in-progress"
+```
+
+8. Close the Table of Contents and navigate to page 1 (or the Preface/Introduction)
 
 ---
 
@@ -173,13 +234,60 @@ Follow this structure for each batch of notes appended to the reference file:
 ---
 ```
 
-**Note-taking principles:**
+**Note-taking principles (project mode):**
 
 - Capture concepts in your own words — do not copy large passages verbatim
 - Every few spreads, include an "Applicable to [project]" section connecting insights to the specific project
 - Be specific about applicability — "this is relevant" is useless; "this means the companion should X when Y" is useful
 - At chapter boundaries, synthesize into named frameworks that can be referenced later
 - Use the project's requirements.md and decisions.md to inform applicability notes
+
+---
+
+### Step 7b: Library Note Format (Library Mode Only)
+
+In library mode, notes are **comprehensive and companion-neutral**. Instead of "Applicable to [project]" sections, use broader tagging.
+
+```markdown
+## Chapter [N] | [Chapter Title] (pp. [start]–[end])
+
+### Pages [X]–[Y]
+
+**Key concepts:**
+
+1. **[Concept name]** — [Description of the concept in your own words, capturing the essential insight]
+
+2. **[Concept name]** — [Description]
+
+**Subject tags:** [craft-technique, character-development, pacing, etc.]
+
+### Pages [X]–[Y]
+
+[Continue for each spread in the batch...]
+
+### Chapter [N] Synthesis
+
+**Chapter thesis:** [One-paragraph summary of the chapter's core argument]
+
+**Key frameworks:**
+
+1. **[Framework name]** — [Description — what it is, when it applies, how to use it]
+2. **[Framework name]** — [Description]
+
+**Potential applicability:**
+- Personas: [which persona types might use this — e.g., writing-mentor, game-designer]
+- Capabilities: [which capabilities this relates to — e.g., mentor-framework, craft-assessment]
+
+---
+```
+
+**Library note-taking principles:**
+
+- Capture EVERYTHING notable — err on the side of more, not less
+- Do NOT filter for any specific companion's needs — capture comprehensively
+- Tag with broad subject categories rather than companion-specific applicability
+- At chapter boundaries, note which persona types and capabilities the material relates to
+- The goal is raw material that any companion can later contextualize from
 
 ---
 
@@ -205,7 +313,17 @@ When you reach the end of the book:
    *Reading complete. [Total pages] pages, [N] chapters.*
    ```
 3. Tell the user the reading is complete
+
+**In project mode:**
 4. **Do not create the master synthesis yet** — that's a separate step the user may want to direct
+
+**In library mode:**
+4. Update `metadata.yaml` to set `status: "complete"`
+5. Create `synthesis.md` in the same library directory with a master synthesis:
+   - Key frameworks distilled from the notes
+   - Major themes and their subject tags
+   - Potential applicability to different persona types
+6. Tell the user the library entry is complete and ready for contextualization by any companion
 
 ---
 

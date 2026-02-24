@@ -1,6 +1,6 @@
 # Project Creator
 
-A Claude Code project that creates other Claude Code projects through reverse prompting.
+A Claude Code project that creates AI companions through reverse prompting, composing them from reusable personas, capabilities, and library materials.
 
 ---
 
@@ -143,22 +143,44 @@ project-creator/
 │   ├── current-project.md       # Active project: client/project-name
 │   ├── projects-log.md          # Registry of all projects
 │   └── patterns-discovered.md   # Learnings for future templates
-├── project-types/               # Codified project types (accelerators)
-│   ├── public/                  # Open source types (committed to repo)
-│   │   ├── product-manager/     # PM thinking partner for product strategy
-│   │   │   ├── TYPE.md              # What this type is, when to use
-│   │   │   ├── intake-guide.md      # Type-specific intake questions
-│   │   │   ├── typical-structure.md # Directory layout that works
-│   │   │   ├── typical-commands.md  # Commands this type usually has
-│   │   │   └── reference-projects.md# Successful implementations
-│   │   └── software-development/# Document-driven AI code generation
-│   │       ├── TYPE.md              # What this type is, when to use
-│   │       ├── intake-guide.md      # Type-specific intake questions
-│   │       ├── typical-structure.md # Directory layout that works
-│   │       ├── typical-commands.md  # Commands this type usually has
-│   │       └── reference-projects.md# Successful implementations
-│   └── private/                 # Proprietary types (git-ignored)
-│       └── [type-name]/         # Same structure as public types
+├── companions/                  # Component-based companion architecture
+│   ├── public/                  # Open source components (committed to repo)
+│   │   ├── personas/            # The "who" of a companion
+│   │   │   ├── product-manager/ # PM thinking partner for product strategy
+│   │   │   │   ├── PERSONA.md           # Identity, voice, named behaviors
+│   │   │   │   ├── intake-guide.md      # Persona-specific intake questions
+│   │   │   │   ├── typical-capabilities.md # Which capabilities this persona uses
+│   │   │   │   ├── typical-structure.md # Directory layout that works
+│   │   │   │   ├── typical-commands.md  # Commands this persona usually has
+│   │   │   │   └── reference-projects.md# Successful implementations (git-ignored)
+│   │   │   ├── software-developer/     # Document-driven AI code generation
+│   │   │   │   └── (same structure)
+│   │   │   └── game-designer/          # Framework-heavy game design
+│   │   │       └── (same structure)
+│   │   └── capabilities/        # The "what" a companion can do
+│   │       ├── reverse-prompting/
+│   │       │   ├── CAPABILITY.md        # What it is, when to use
+│   │       │   └── integration-guide.md # How to wire into a companion
+│   │       ├── context-ecosystem/
+│   │       ├── strategic-planning/
+│   │       ├── meeting-processing/
+│   │       ├── insight-feedback-loop/
+│   │       ├── mentor-framework/
+│   │       ├── session-hygiene/
+│   │       ├── craft-assessment/
+│   │       ├── process-evolution/
+│   │       └── knowledge-zones/
+│   └── private/                 # Git-ignored; each org independently versioned
+│       └── [org]/               # e.g., consortium.team
+│           ├── personas/        # Org-specific personas
+│           ├── capabilities/    # Org-specific capabilities
+│           └── library/         # Book notes organized by subject
+│               └── [subject]/
+│                   └── [book]/
+│                       ├── notes.md      # Comprehensive, companion-neutral
+│                       ├── synthesis.md  # Key ideas distilled
+│                       └── metadata.yaml # Subject tags, related personas
+├── project-types/               # Legacy (kept during migration)
 ├── templates/                   # Project archetypes (emerges over time)
 ├── .gitignore                   # Ignores: projects/
 ├── .claude/
@@ -231,6 +253,7 @@ The goal is to **capture enough context** that a well-configured Claude Code pro
 | `/process` | Analyze external inputs (transcripts, docs, notes) |
 | `/gaps` | Assess what's captured vs. what's still needed |
 | `/checkpoint` | Capture session state before ending |
+| `/read-book` | Read and annotate a book via Kindle Cloud Reader |
 
 ### Phase 2: Cultivation
 
@@ -277,18 +300,20 @@ Start reverse prompting for a new project.
 
 **Prerequisites**: Users should have Git/GitHub configured. For non-technical users new to Git, see [`docs/guides/getting-up-to-speed-on-github/`](docs/guides/getting-up-to-speed-on-github/) (includes quick-start option).
 
-**Project Type Acceleration:**
+**Persona Acceleration:**
 
-If a project type is specified (e.g., `/intake product-manager`), search for the type in both `project-types/public/` and `project-types/private/`, then read the type's intake guide:
-- `project-types/{public,private}/[type]/intake-guide.md` — Type-specific questions
-- `project-types/{public,private}/[type]/typical-structure.md` — What to aim for
-- `project-types/{public,private}/[type]/reference-projects.md` — What worked before
+If a persona is specified (e.g., `/intake product-manager`), search for the persona in both `companions/public/personas/` and `companions/private/[org]/personas/`, then read the persona's files:
+- `PERSONA.md` — Identity, voice, key concepts
+- `intake-guide.md` — Persona-specific intake questions
+- `typical-capabilities.md` — Which capabilities this persona typically uses
+- `reference-projects.md` — What worked before
 
-Type-specific questions accelerate to known-good starting points. They don't constrain — the methodology handles adaptation through usage.
+If no persona is specified, the intake process discovers which persona and capabilities fit through the conversation.
 
-**Available public types:**
+**Available public personas:**
 - `product-manager` — PM thinking partner for product strategy and discovery (strategy-as-anchor, reverse prompting, three-phase methodology)
-- `software-development` — Document-driven AI code generation with developer engagement at planning and review (living docs context ecosystem, specification-based testing, maturation model)
+- `software-developer` — Document-driven AI code generation with developer engagement at planning and review (living docs context ecosystem, specification-based testing, maturation model)
+- `game-designer` — Framework-heavy game design analysis with two-layer design docs and non-optional insight capture
 
 **Core questions (always ask):**
 

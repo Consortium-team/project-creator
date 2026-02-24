@@ -16,11 +16,26 @@ tracking/
 # Project ideas - may contain proprietary or confidential concepts
 project-ideas/
 
+# =============================================================================
+# COMPANION ARCHITECTURE
+# =============================================================================
+
+# Private companions - org-specific personas, capabilities, and library
+# Each org directory can be independently version-controlled with its own git repo
+companions/private/
+
+# Reference projects in public personas - these reference private project paths
+# that won't exist for other users. Each user builds their own over time.
+companions/public/personas/*/reference-projects.md
+
+# =============================================================================
+# LEGACY PROJECT TYPES (kept during migration, remove after confirmed)
+# =============================================================================
+
 # Private project types - proprietary type accelerators not for public release
 project-types/private/
 
 # Reference projects in public types - these reference private project paths
-# that won't exist for other users. Each user builds their own over time.
 project-types/public/*/reference-projects.md
 
 # =============================================================================

@@ -529,27 +529,29 @@ Build complete — [linear_parent_issue] → Done
 
 ---
 
-### Step 8: Update Reference Projects (if project type was used)
+### Step 8: Update Reference Projects (if persona was used)
 
-After the build completes, check whether this project was created from a project type:
+After the build completes, check whether this project was created from a persona:
 
-1. **Check for project type** — Read `context/decisions.md` and look for a "Project type:" entry (recorded by `/intake` Step 2b)
-2. **If no type was used** — Skip this step
-3. **If a type was used:**
+1. **Check for persona** — Read `context/decisions.md` and look for a "Persona:" entry (recorded by `/intake` Step 2b)
+2. **If no persona was used** — Skip this step
+3. **If a persona was used:**
 
-   a. Locate the type's `reference-projects.md`:
-      - `project-types/public/[type]/reference-projects.md` or
-      - `project-types/private/[type]/reference-projects.md`
+   a. Determine the organization from the project path (client portion)
 
-   b. If `reference-projects.md` doesn't exist yet, create it using the template from the type's existing files (check TYPE.md or reference-projects.md from another type for the pattern)
+   b. Locate the persona's `reference-projects.md`:
+      - `companions/public/personas/[persona]/reference-projects.md` or
+      - `companions/private/[org]/personas/[persona]/reference-projects.md`
 
-   c. Read the built project's key files to extract reference data:
+   c. If `reference-projects.md` doesn't exist yet, create it using the template from another persona's reference-projects.md
+
+   d. Read the built project's key files to extract reference data:
       - `CLAUDE.md` — Configuration and voice
       - `context/decisions.md` — Key decisions with rationale
       - `context/requirements.md` — What was built and why
       - `context/constraints.md` — Constraints that shaped the project
 
-   d. Append a new reference project entry:
+   e. Append a new reference project entry:
 
    ```markdown
    ## [Project Name]
@@ -562,7 +564,7 @@ After the build completes, check whether this project was created from a project
 
    | Dimension | Setting |
    |-----------|---------|
-   | [Type-relevant dimension] | [Value] |
+   | [Persona-relevant dimension] | [Value] |
    ...
 
    ### Key Decisions
@@ -580,7 +582,7 @@ After the build completes, check whether this project was created from a project
    ...
    ```
 
-   e. If prior reference projects exist, add a comparison section:
+   f. If prior reference projects exist, add a comparison section:
    ```markdown
    ### Differences from [Prior Project]
 
@@ -591,10 +593,10 @@ After the build completes, check whether this project was created from a project
 
 4. **Report the update:**
    ```
-   Updated reference-projects.md for the [type] project type with [project] as a new reference implementation.
+   Updated reference-projects.md for the [persona] persona with [project] as a new reference implementation.
    ```
 
-**Why this matters:** Reference projects are the most valuable part of a project type. Each successful build makes the type better for the next project. This step captures learnings while context is fresh — you'll never have a better view of what worked than right after building it.
+**Why this matters:** Reference projects are the most valuable part of a persona. Each successful build makes the persona better for the next project. This step captures learnings while context is fresh — you'll never have a better view of what worked than right after building it.
 
 ---
 
