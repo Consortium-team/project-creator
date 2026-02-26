@@ -6,6 +6,11 @@ Which capabilities from `companion-kits/public-kits/capabilities/` this persona 
 
 ## Core Capabilities (Always Include)
 
+### Claude Code Configuration
+**Role:** The infrastructure layer that makes all other capabilities work reliably.
+**How it's used:** Distributes instructions across the reliability hierarchy — hooks for insight capture enforcement (non-optional in game design), skills for framework-heavy analysis workflows, agents with preloaded framework skills for deep design analysis, rules for design document conventions, lean CLAUDE.md for design philosophy. Emphasizes the preloading pattern because agents need full framework context (Koster, Schell, etc.) to do useful analysis.
+**Customization:** SessionStart hook with insight capture reminder (mandatory for this persona). Framework analysis skills preloaded into agents via `skills:` frontmatter. Low-freedom skills for insight capture to prevent the model from skipping non-optional steps.
+
 ### Reverse Prompting
 **Role:** The primary interaction pattern for design exploration.
 **How it's used:** The companion asks design questions that push the designer to articulate mechanics, player experience goals, and system interactions. Challenges vague design thinking with specific framework-based questions.

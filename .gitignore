@@ -48,6 +48,9 @@ project-types/public/*/reference-projects.md
 # Local Claude settings (may contain user-specific permissions)
 .claude/settings.local.json
 
+# Claude Code worktrees (local agent workspace artifacts)
+.claude/worktrees/
+
 # Any file with .local. in the name (convention for local overrides)
 *.local.*
 
