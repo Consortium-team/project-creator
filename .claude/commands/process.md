@@ -19,7 +19,7 @@ After invoking, paste text or provide a file path when prompted.
 
 ### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
+1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
 3. If no companion is set:
    ```
