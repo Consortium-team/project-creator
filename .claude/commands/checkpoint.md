@@ -5,8 +5,8 @@ Capture session state before ending. Preserves progress across context boundarie
 ## Usage
 
 ```
-/checkpoint                     # Use current project
-/checkpoint [client/project]    # Override for specific project
+/checkpoint                       # Use current companion
+/checkpoint [client/companion]   # Override for specific companion
 ```
 
 ## Argument: $ARGUMENTS
@@ -15,13 +15,13 @@ Capture session state before ending. Preserves progress across context boundarie
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set:
    ```
-   No active project to checkpoint. What were you working on?
+   No active companion to checkpoint. What were you working on?
    ```
    (Can still capture general session notes to patterns-discovered.md)
 
@@ -89,7 +89,7 @@ After user confirms (or immediately if summary is accurate):
 
 Add a session entry:
 ```markdown
-### [Today's Date] — [client/project]
+### [Today's Date] — [client/companion]
 
 **What was captured:**
 - [Summary of requirements/constraints/decisions captured]
@@ -142,7 +142,7 @@ Create notes that would help resume work, even with complete context loss:
 - `context/decisions.md` — [what's there]
 ```
 
-Save these notes to `projects/[client]/[project]/HANDOFF.md`
+Save these notes to `companions/[client]/[companion]/HANDOFF.md`
 
 ---
 
@@ -178,7 +178,7 @@ If user agrees, stage and commit the changes.
 - [if patterns] tracking/patterns-discovered.md
 
 **Next time, start with:**
-  /project [client/project]    # Set context
+  /companion [client/companion]    # Set context
   /gaps                        # See where you left off
 
 Or read HANDOFF.md in the project directory for a quick summary.

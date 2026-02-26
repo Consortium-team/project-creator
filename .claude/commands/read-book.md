@@ -3,13 +3,13 @@
 Read a book through the browser, taking structured notes in batches of 10 page-flips. Supports two modes:
 
 1. **Project mode** (default) — Produces project-specific applicability notes stored in the companion's `reference/` directory
-2. **Library mode** (`--library [org]`) — Produces comprehensive, companion-neutral notes stored in the organization's library at `companions/private/[org]/library/`
+2. **Library mode** (`--library [org]`) — Produces comprehensive, companion-neutral notes stored in the organization's library at `companion-kits/private-kits/[org]-companion-kit/library/`
 
 ## Usage
 
 ```
-/read-book [kindle-url]                              # Read for current project (project mode)
-/read-book [kindle-url] [client/project]             # Override for specific project
+/read-book [kindle-url]                              # Read for current companion (project mode)
+/read-book [kindle-url] [client/companion]           # Override for specific companion
 /read-book --library [org] [kindle-url]              # Read to org library (library mode)
 /read-book --library [org] [subject] [kindle-url]    # Library mode with subject category
 ```
@@ -32,7 +32,7 @@ Read a book through the browser, taking structured notes in batches of 10 page-f
 Parse `$ARGUMENTS` for the `--library` flag:
 
 **If `--library [org]` is present:**
-- **Library mode** — Notes are companion-neutral, stored in `companions/private/[org]/library/`
+- **Library mode** — Notes are companion-neutral, stored in `companion-kits/private-kits/[org]-companion-kit/library/`
 - Extract the organization name (e.g., `consortium.team`)
 - If a subject category is provided (e.g., `creative-writing`), use it for directory placement
 - Skip Step 1 (no project needed)
@@ -42,17 +42,17 @@ Parse `$ARGUMENTS` for the `--library` flag:
 - **Project mode** — Notes are companion-specific, stored in the project's `reference/` directory
 - Proceed to Step 1
 
-### Step 1: Determine the Project (Project Mode Only)
+### Step 1: Determine the Companion (Project Mode Only)
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set:
    ```
-   No project set. Use /project to set or create one first.
+   No companion set. Use /companion to set or create one first.
    Or use --library [org] to read to the organization's library.
    ```
 
-Store the project path and full directory path (`projects/[client]/[project]/`).
+Store the companion path and full directory path (`companions/[client]/[companion]/`).
 
 ---
 
@@ -66,10 +66,10 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 ### Step 3: Check for Existing Reference File
 
 **In project mode:**
-1. Search `[project]/reference/` for any file containing the ASIN or that matches the book
+1. Search `[companion]/reference/` for any file containing the ASIN or that matches the book
 
 **In library mode:**
-1. Search `companions/private/[org]/library/` recursively for any file containing the ASIN or that matches the book
+1. Search `companion-kits/private-kits/[org]-companion-kit/library/` recursively for any file containing the ASIN or that matches the book
 2. Also check if a `metadata.yaml` already exists with a matching ASIN
 
 **In either mode:**
@@ -90,7 +90,7 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 
 **In project mode:**
 4. Ask the user to confirm the reference filename (suggest: `[author-lastname]-[short-title]-notes.md`)
-5. Create the reference file in `[project]/reference/` with this header:
+5. Create the reference file in `[companion]/reference/` with this header:
 
 ```markdown
 # [Book Title] — Key Insights
@@ -104,7 +104,7 @@ Store the project path and full directory path (`projects/[client]/[project]/`).
 
 **In library mode:**
 4. Determine the library directory:
-   - If subject was provided: `companions/private/[org]/library/[subject]/[author-short-title]/`
+   - If subject was provided: `companion-kits/private-kits/[org]-companion-kit/library/[subject]/[author-short-title]/`
    - If no subject: ask the user which subject category to use (e.g., `creative-writing`, `game-design`, `product-management`)
 5. Create the directory if it doesn't exist
 6. Create `notes.md` in the library directory with this header:

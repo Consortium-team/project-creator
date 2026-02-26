@@ -153,12 +153,12 @@ Tracking files maintain continuity across sessions. They should always reflect c
 When a sibling dev project exists:
 
 ```
-projects/[client]/
-├── [product]-pm/           # This PM project
+companions/[client]/
+├── [product]-pm/           # This PM companion
 │   └── docs/specs/         # PM writes specs here
-│       └── feature-a.md    # Dev project reads these
+│       └── feature-a.md    # Dev companion reads these
 │
-└── [product]-dev/           # Sibling dev project
+└── [product]-dev/           # Sibling dev companion
     └── docs/specs/          # May reference PM specs
 ```
 

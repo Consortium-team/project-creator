@@ -5,15 +5,15 @@ Take existing companion-neutral library notes and generate a reference file tail
 ## Usage
 
 ```
-/contextualize [book-search-term]                    # Search org library, use current project
-/contextualize [book-search-term] [client/project]   # Override project
+/contextualize [book-search-term]                    # Search org library, use current companion
+/contextualize [book-search-term] [client/companion]  # Override companion
 ```
 
 **Examples:**
 ```
 /contextualize king                                   # Finds king-on-writing in library
 /contextualize story-structure                        # Matches by subject tag
-/contextualize king consortium.team/writing-companion # Override project
+/contextualize king consortium.team/writing-companion # Override companion
 ```
 
 ## Argument: $ARGUMENTS
@@ -22,25 +22,25 @@ Take existing companion-neutral library notes and generate a reference file tail
 
 ## Instructions
 
-### Step 0: Determine Project and Organization
+### Step 0: Determine Companion and Organization
 
 1. Parse `$ARGUMENTS`:
-   - Last argument may be a project path (contains `/`) — if so, use it as the project
+   - Last argument may be a companion path (contains `/`) — if so, use it as the companion
    - Remaining arguments are the book search term
-2. If no project path in arguments, read `tracking/current-project.md` for the current project
-3. If no project is set:
+2. If no companion path in arguments, read `tracking/current-companion.md` for the current companion
+3. If no companion is set:
    ```
-   No project set. Use /project to set or create one first.
+   No companion set. Use /companion to set or create one first.
    ```
-4. Derive the organization from the client portion of the project path (e.g., `consortium.team` from `consortium.team/writing-companion`)
-5. Set `library_dir` = `companions/private/[org]/library/`
-6. Set `project_dir` = `projects/[client]/[project]/`
+4. Derive the organization from the client portion of the companion path (e.g., `consortium.team` from `consortium.team/writing-companion`)
+5. Set `library_dir` = `companion-kits/private-kits/[org]-companion-kit/library/`
+6. Set `companion_dir` = `companions/[client]/[companion]/`
 
 **Declare collected values:**
 ```
 Step 0 Complete. Collected values:
-- Project: [client/project]
-- Project dir: [absolute path]
+- Companion: [client/companion]
+- Companion dir: [absolute path]
 - Organization: [org]
 - Library dir: [absolute path]
 - Search term: [book-search-term]
@@ -129,12 +129,12 @@ Use /read-book --library [org] to populate it first.
 
 ### Step 3: Load Companion Context
 
-Read the following files from the project directory:
+Read the following files from the companion directory:
 
-1. `[project_dir]/context/requirements.md`
-2. `[project_dir]/context/decisions.md`
-3. `[project_dir]/context/constraints.md`
-4. `[project_dir]/CLAUDE.md`
+1. `[companion_dir]/context/requirements.md`
+2. `[companion_dir]/context/decisions.md`
+3. `[companion_dir]/context/constraints.md`
+4. `[companion_dir]/CLAUDE.md`
 
 Extract and summarize:
 - **Companion purpose** — What is this companion for?
@@ -157,7 +157,7 @@ Step 3 Complete. Companion context loaded:
 
 ### Step 4: Check for Existing Reference File
 
-1. Search `[project_dir]/reference/` for any file that appears to be a contextualization of this book
+1. Search `[companion_dir]/reference/` for any file that appears to be a contextualization of this book
    - Match by author name, book title, or presence of the book's metadata in the file header
 2. **If found with progress marker** (contains "Contextualization paused"):
    - Read the file to find where it left off
@@ -184,7 +184,7 @@ Step 3 Complete. Companion context loaded:
 
 1. Suggest filename: `[author-lastname]-[short-title]-companion-notes.md`
    - Confirm with user or let them override
-2. Create the file in `[project_dir]/reference/` with this header:
+2. Create the file in `[companion_dir]/reference/` with this header:
 
 ```markdown
 # [Book Title] — Companion Reference
@@ -198,7 +198,7 @@ Step 3 Complete. Companion context loaded:
 ---
 ```
 
-3. Create the `[project_dir]/reference/` directory if it doesn't exist
+3. Create the `[companion_dir]/reference/` directory if it doesn't exist
 
 ---
 
@@ -289,7 +289,7 @@ After all chapters are processed, write a master synthesis section at the end of
 
 ### Integration Notes
 
-- [How these frameworks connect to other reference material in the project]
+- [How these frameworks connect to other reference material in the companion]
 - [Potential tensions or complementary relationships with existing guidance]
 ```
 
@@ -302,7 +302,7 @@ Replace the progress marker with a completion marker:
 
 ### Step 8: Record the Contextualization
 
-1. Add a row to `[project_dir]/context/decisions.md`:
+1. Add a row to `[companion_dir]/context/decisions.md`:
    ```
    | Contextualized [Book Title] for companion | [Top 3 frameworks extracted]; [N] concepts filtered as not applicable | [date] |
    ```

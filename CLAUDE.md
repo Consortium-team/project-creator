@@ -56,8 +56,8 @@ When a command is invoked (e.g., `/plan`, `/build`, `/intake`), you MUST:
 
 ```
 Step 2 Complete. Collected values:
-- Project: consortium.team/consortiumteam-website
-- Project path: /absolute/path/to/project
+- Companion: consortium.team/consortiumteam-website
+- Companion path: /absolute/path/to/companion
 - Spec file: docs/plans/2026-02-11-implementation-spec.md
 - Tickets to execute: 11
 ```
@@ -127,7 +127,7 @@ Not following this protocol:
 
 ## The Parent-Child Pattern
 
-Project Creator is a **meta-project** that manages sub-projects.
+Project Creator is a **meta-project** that manages companions.
 
 ### Directory Structure
 
@@ -140,11 +140,12 @@ project-creator/
 │   └── guides/
 │       └── getting-up-to-speed-on-github/  # Git/GitHub onboarding for non-technical users
 ├── tracking/
-│   ├── current-project.md       # Active project: client/project-name
+│   ├── current-companion.md     # Active companion: client/companion-name
 │   ├── projects-log.md          # Registry of all projects
-│   └── patterns-discovered.md   # Learnings for future templates
-├── companions/                  # Component-based companion architecture
-│   ├── public/                  # Open source components (committed to repo)
+│   ├── patterns-discovered.md   # Learnings for future templates
+│   └── permissions.yaml         # Kit access permissions
+├── companion-kits/              # Component-based companion architecture
+│   ├── public-kits/             # Open source components (committed to repo)
 │   │   ├── personas/            # The "who" of a companion
 │   │   │   ├── product-manager/ # PM thinking partner for product strategy
 │   │   │   │   ├── PERSONA.md           # Identity, voice, named behaviors
@@ -170,8 +171,8 @@ project-creator/
 │   │       ├── craft-assessment/
 │   │       ├── process-evolution/
 │   │       └── knowledge-zones/
-│   └── private/                 # Git-ignored; each org independently versioned
-│       └── [org]/               # e.g., consortium.team
+│   └── private-kits/            # Git-ignored; each org independently versioned
+│       └── [org]-companion-kit/ # e.g., consortium.team-companion-kit
 │           ├── personas/        # Org-specific personas
 │           ├── capabilities/    # Org-specific capabilities
 │           └── library/         # Book notes organized by subject
@@ -182,7 +183,7 @@ project-creator/
 │                       └── metadata.yaml # Subject tags, related personas
 ├── project-types/               # Legacy (kept during migration)
 ├── templates/                   # Project archetypes (emerges over time)
-├── .gitignore                   # Ignores: projects/
+├── .gitignore                   # Ignores: companions/
 ├── .claude/
 │   ├── commands/                # Phase commands
 │   │   ├── intake.md
@@ -190,34 +191,35 @@ project-creator/
 │   │   ├── process.md
 │   │   ├── gaps.md
 │   │   ├── checkpoint.md
-│   │   ├── project.md
+│   │   ├── companion.md
+│   │   ├── configure.md
 │   │   ├── plan.md              # Cultivation phase
 │   │   └── build.md             # Shaping phase
 │   └── agents/
 │       ├── ticket-executor.md   # Implements tickets
 │       └── ticket-verifier.md   # Verifies completion
-└── projects/                    # Git-ignored; sub-projects live here
+└── companions/                  # Git-ignored; companion projects live here
     └── [client]/
-        └── [project]/           # Each has its own git repo
+        └── [companion]/         # Each has its own git repo
 ```
 
 ### Key Rules
 
-1. **Git isolation** — The `projects/` folder is git-ignored. Each sub-project has its own independent git repository.
+1. **Git isolation** — The `companions/` folder is git-ignored. Each companion has its own independent git repository.
 
-2. **Client grouping** — Projects are organized by client: `projects/acme-corp/api-service/`
+2. **Client grouping** — Companions are organized by client: `companions/acme-corp/api-service/`
 
-3. **Ignore child CLAUDE.md** — When working at the Project Creator level, ignore CLAUDE.md files inside sub-projects. They have different contexts.
+3. **Ignore child CLAUDE.md** — When working at the Project Creator level, ignore CLAUDE.md files inside companions. They have different contexts.
 
-4. **Context separation** — When a user points Claude Code directly at a sub-project (not Project Creator), only that sub-project's context applies.
+4. **Context separation** — When a user points Claude Code directly at a companion (not Project Creator), only that companion's context applies.
 
-### Current Project Context
+### Current Companion Context
 
-Commands operate on the **current project** stored in `tracking/current-project.md`.
+Commands operate on the **current companion** stored in `tracking/current-companion.md`.
 
-- All commands accept an optional `[client/project]` parameter to override
-- If no parameter given, use current project
-- If no current project and no parameter, list available projects and ask
+- All commands accept an optional `[client/companion]` parameter to override
+- If no parameter given, use current companion
+- If no current companion and no parameter, list available companions and ask
 
 ---
 
@@ -247,9 +249,10 @@ The goal is to **capture enough context** that a well-configured Claude Code pro
 
 | Command | Purpose |
 |---------|---------|
-| `/project` | Set, show, or create current project context |
-| `/intake` | New project: reverse prompting to draw out requirements |
-| `/onboard` | Existing project: analyze what exists, fill gaps |
+| `/companion` | Set, show, or create current companion context |
+| `/configure` | First-run setup: org identity, directory creation, permissions |
+| `/intake` | New companion: reverse prompting to draw out requirements |
+| `/onboard` | Existing companion: analyze what exists, fill gaps |
 | `/process` | Analyze external inputs (transcripts, docs, notes) |
 | `/gaps` | Assess what's captured vs. what's still needed |
 | `/checkpoint` | Capture session state before ending |
@@ -280,30 +283,45 @@ Execute the plan by orchestrating agents to build the project.
 
 ## Command Guidance
 
-### `/project`
+### `/companion`
 
 ```
-/project                              # Show current + list all
-/project acme-corp/api-refactor       # Set current (must exist)
-/project new startup-inc/new-project  # Create new and set as current
+/companion                              # Show current + list all
+/companion acme-corp/api-refactor       # Set current (must exist)
+/companion new startup-inc/new-companion  # Create new and set as current
 ```
 
-When creating a new project:
-1. Create `projects/[client]/` if needed
-2. Create `projects/[client]/[project]/`
-3. Initialize git repo in the project directory
-4. Update `tracking/current-project.md`
+When creating a new companion:
+1. Create `companions/[client]/` if needed
+2. Create `companions/[client]/[companion]/`
+3. Initialize git repo in the companion directory
+4. Update `tracking/current-companion.md`
 5. Add entry to `tracking/projects-log.md`
+
+### `/configure`
+
+First-run setup and ongoing configuration.
+
+**First run:**
+1. Asks for organization name
+2. Creates `companion-kits/private-kits/[org]-companion-kit/` with subdirs
+3. Creates `companions/[org]/`
+4. Creates `tracking/permissions.yaml`
+5. Migrates legacy `projects/` if found
+
+**Subsequent runs:**
+- Update permissions (add/remove always-accessible kits)
+- View current configuration
 
 ### `/intake`
 
-Start reverse prompting for a new project.
+Start reverse prompting for a new companion.
 
 **Prerequisites**: Users should have Git/GitHub configured. For non-technical users new to Git, see [`docs/guides/getting-up-to-speed-on-github/`](docs/guides/getting-up-to-speed-on-github/) (includes quick-start option).
 
 **Persona Acceleration:**
 
-If a persona is specified (e.g., `/intake product-manager`), search for the persona in both `companions/public/personas/` and `companions/private/[org]/personas/`, then read the persona's files:
+If a persona is specified (e.g., `/intake product-manager`), search for the persona in both `companion-kits/public-kits/personas/` and `companion-kits/private-kits/[org]-companion-kit/personas/`, then read the persona's files:
 - `PERSONA.md` — Identity, voice, key concepts
 - `intake-guide.md` — Persona-specific intake questions
 - `typical-capabilities.md` — Which capabilities this persona typically uses
@@ -328,13 +346,13 @@ If no persona is specified, the intake process discovers which persona and capab
 **Ask one question at a time.** Let answers inform the next question. Push for specificity — "a user" is vague; "a developer who needs to..." is concrete.
 
 Write captured information to:
-- `[project]/context/requirements.md`
-- `[project]/context/constraints.md`
-- `[project]/context/decisions.md`
+- `[companion]/context/requirements.md`
+- `[companion]/context/constraints.md`
+- `[companion]/context/decisions.md`
 
 ### `/onboard`
 
-For existing projects the user has cloned into `projects/`.
+For existing companions the user has cloned into `companions/`.
 
 1. Analyze what exists (CLAUDE.md, README, commands, skills, docs)
 2. Compare against methodology checklist
@@ -348,14 +366,14 @@ Handle external inputs — transcripts, documents, notes.
 
 1. Accept pasted text or file path
 2. Extract structured information (requirements, constraints, decisions, questions)
-3. Update project context files
+3. Update companion context files
 4. Flag items needing clarification
 
 ### `/gaps`
 
 Assessment checkpoint.
 
-1. Read all project context files
+1. Read all companion context files
 2. Compare against what's needed for a well-configured project
 3. Report gaps with priorities
 4. Suggest what to capture next
@@ -374,10 +392,10 @@ End-of-session capture.
 
 Generate a companion-specific reference file from org library notes.
 
-1. Finds the book in the org's library (`companions/private/[org]/library/`)
+1. Finds the book in the org's library (`companion-kits/private-kits/[org]-companion-kit/library/`)
 2. Reads the detailed `notes.md` chapter by chapter
 3. Filters and reframes concepts for the current companion's needs
-4. Writes a companion-specific reference file to `[project]/reference/`
+4. Writes a companion-specific reference file to `[companion]/reference/`
 
 Works with books that have `complete` or `in-progress` status in the library.
 
@@ -448,7 +466,7 @@ Agents are defined in `.claude/agents/`.
 For deep methodology patterns, see `methodology.md`:
 - Reverse Prompting Deep Dive (quality extraction, the three phases)
 - Failure Recovery Patterns (how commands evolve through use)
-- Meta-Project Patterns (parent-child, current project, onboard vs intake)
+- Meta-Project Patterns (parent-child, current companion, onboard vs intake)
 - Context Ecosystem model
 
 ---

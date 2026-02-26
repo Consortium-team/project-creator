@@ -5,8 +5,8 @@ Orchestrate sub-agents to execute tickets and build the project.
 ## Usage
 
 ```
-/build                     # Use current project
-/build [client/project]    # Override for specific project
+/build                     # Use current companion
+/build [client/companion]  # Override for specific companion
 ```
 
 ## Argument: $ARGUMENTS
@@ -15,16 +15,16 @@ Orchestrate sub-agents to execute tickets and build the project.
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set:
    ```
-   No project set. Use /project to set or create one first.
+   No companion set. Use /companion to set or create one first.
    ```
 
-Store the project path (e.g., `acme-corp/api-service`) and the full directory path (`projects/[client]/[project]/`).
+Store the companion path (e.g., `acme-corp/api-service`) and the full directory path (`companions/[client]/[companion]/`).
 
 ---
 
@@ -32,10 +32,10 @@ Store the project path (e.g., `acme-corp/api-service`) and the full directory pa
 
 **Load tickets.yaml:**
 
-1. Check for `projects/[client]/[project]/docs/plans/tickets.yaml`
+1. Check for `companions/[client]/[companion]/docs/plans/tickets.yaml`
 2. If not exists, STOP:
    ```
-   No tickets.yaml found for [project].
+   No tickets.yaml found for [companion].
    Run /plan first to create tickets.
    ```
 3. Parse the file and extract:
@@ -87,7 +87,7 @@ Step 2 Complete. Loaded ticket data:
 
 **Check for prior progress:**
 
-Check `projects/[client]/[project]/docs/plans/build-progress.md` for prior progress:
+Check `companions/[client]/[companion]/docs/plans/build-progress.md` for prior progress:
 - If some tickets show `completed`, verify those output files still exist on disk
 - If output files exist, skip those tickets
 - If output files are missing despite "completed" status, reset those tickets to `pending`
@@ -116,7 +116,7 @@ Create an ordered list of tickets to execute.
 Display the plan for user review:
 
 ```
-## Build Plan: [project]
+## Build Plan: [companion]
 
 **Source:** [tickets.yaml | Linear]
 **Tickets to execute:** [N]
@@ -405,7 +405,7 @@ Based on verifier recommendation AND orchestrator file check:
 
 After each ticket completes AND files are confirmed:
 
-Update `projects/[client]/[project]/docs/plans/build-progress.md`:
+Update `companions/[client]/[companion]/docs/plans/build-progress.md`:
 - Change ticket status from `pending` to `completed`
 - Add timestamp
 - Log any issues that were resolved
@@ -491,7 +491,7 @@ Handle each option:
 After all tickets complete (or are skipped):
 
 ```
-## Build Complete: [project]
+## Build Complete: [companion]
 
 **Tickets completed:** [N]/[total]
 **Tickets skipped:** [N] (if any)
@@ -509,7 +509,7 @@ After all tickets complete (or are skipped):
 
 ## Next Steps
 
-1. **Review the project** at `projects/[client]/[project]/`
+1. **Review the companion** at `companions/[client]/[companion]/`
 2. **Test the implementation** — Run any commands or workflows
 3. **Run /checkpoint** to capture session state
 
@@ -540,8 +540,8 @@ After the build completes, check whether this project was created from a persona
    a. Determine the organization from the project path (client portion)
 
    b. Locate the persona's `reference-projects.md`:
-      - `companions/public/personas/[persona]/reference-projects.md` or
-      - `companions/private/[org]/personas/[persona]/reference-projects.md`
+      - `companion-kits/public-kits/personas/[persona]/reference-projects.md` or
+      - `companion-kits/private-kits/[org]-companion-kit/personas/[persona]/reference-projects.md`
 
    c. If `reference-projects.md` doesn't exist yet, create it using the template from another persona's reference-projects.md
 
@@ -556,7 +556,7 @@ After the build completes, check whether this project was created from a persona
    ```markdown
    ## [Project Name]
 
-   **Location:** `projects/[client]/[project]/`
+   **Location:** `companions/[client]/[companion]/`
    **Client:** [client name]
    **Status:** Active, newly built
 
@@ -593,7 +593,7 @@ After the build completes, check whether this project was created from a persona
 
 4. **Report the update:**
    ```
-   Updated reference-projects.md for the [persona] persona with [project] as a new reference implementation.
+   Updated reference-projects.md for the [persona] persona with [companion] as a new reference implementation.
    ```
 
 **Why this matters:** Reference projects are the most valuable part of a persona. Each successful build makes the persona better for the next project. This step captures learnings while context is fresh — you'll never have a better view of what worked than right after building it.

@@ -1,8 +1,8 @@
 # Project Creator
 
-**The challenge:** Setting up a Claude Code project well requires capturing tacit knowledge — requirements, constraints, architectural decisions, workflow patterns — that lives in your head. Without systematic extraction, projects start incomplete, context gets lost, and teams can't scale what individuals discover.
+**The challenge:** Creating an effective AI companion requires capturing tacit knowledge — requirements, constraints, architectural decisions, workflow patterns — that lives in your head. Without systematic extraction, companions start incomplete, context gets lost, and teams can't scale what individuals discover.
 
-**The solution:** Project Creator uses reverse prompting to draw out your knowledge through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, commands, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final project — transforming ad-hoc setup into repeatable, scalable project creation.
+**The solution:** Project Creator creates AI companions — Claude Code projects composed from reusable personas, capabilities, and domain knowledge. It uses reverse prompting to draw out your requirements through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, commands, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final companion — transforming ad-hoc setup into repeatable, scalable companion creation.
 
 ---
 
@@ -14,6 +14,7 @@
 - **Clone this repository** — Clone (or fork and clone) the project-creator repo to a local directory
 - **Claude Code** — This project is designed to run inside Claude Code or a Claude cowork task.
 - **Linear MCP** — The `/plan` and `/build` commands create and read tickets from Linear. See [Linear's MCP setup guide](https://linear.app/docs/mcp) for configuration instructions.
+- **First-time setup** — Run `/configure` after cloning to set your default organization and verify your environment is ready.
 
 ### Linear Setup
 
@@ -27,7 +28,7 @@ Without Linear, you can still use the Seeding phase commands (`/intake`, `/onboa
 
 ### Nice to Have
 
-- **[Granola.ai](https://granola.ai)** — AI meeting notes tool. With the Granola MCP configured, you can feed meeting transcripts directly into Project Creator using prompts like `/process the Granola transcript from yesterday with [client name]`. Not required, but useful if your project requirements live in meeting conversations. See [Granola MCP setup instructions](https://docs.granola.ai/help-center/sharing/integrations/mcp#claude-code).
+- **[Granola.ai](https://granola.ai)** — AI meeting notes tool. With the Granola MCP configured, you can feed meeting transcripts directly into Project Creator using prompts like `/process the Granola transcript from yesterday with [client name]`. Not required, but useful if your companion requirements live in meeting conversations. See [Granola MCP setup instructions](https://docs.granola.ai/help-center/sharing/integrations/mcp#claude-code).
 
 ---
 
@@ -42,7 +43,7 @@ Cowork tasks run in a separate environment where Claude doesn't automatically re
 1. When creating a Cowork task, click the button to set working folders
 2. Set the working folder to your `project-creator` directory
 
-### Starting a Project
+### Starting a Companion
 
 Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local commands, agents, and skills — and will make up its own versions when you reference them later.
 
@@ -57,9 +58,9 @@ The key elements are:
 
 After Claude confirms it has oriented itself, you can use commands normally.
 
-**Example follow-up prompt (creating a project):**
+**Example follow-up prompt (creating a companion):**
 
-> Run the `/project` command to create a new project in `consortium.team` and call it `writing-companion-sonjaya`.
+> Run the `/companion` command to create a new companion in `consortium.team` and call it `writing-companion-sonjaya`.
 
 **Example follow-up prompt (providing context before intake):**
 
@@ -69,7 +70,7 @@ After Claude confirms it has oriented itself, you can use commands normally.
 >
 > Please run the command: `/intake writing-companion`
 
-This example shows an important pattern: **give Claude the lay of the land before running a command**. By explaining which prior projects exist, how they relate, and what you want to carry forward vs. ignore, you get a much more informed intake conversation.
+This example shows an important pattern: **give Claude the lay of the land before running a command**. By explaining which prior companions exist, how they relate, and what you want to carry forward vs. ignore, you get a much more informed intake conversation.
 
 **Example follow-up prompt (checking progress):**
 
@@ -91,14 +92,18 @@ At this point, switch to Claude Code to run `/build` — it's more reliable for 
 
 ## Quick Start (for usage within Claude Code)
 
-### Starting a New Project
+### Starting a New Companion
 
 ```bash
 # Point Claude Code at this directory
 cd project-creator
+> claude [HIT ENTER]
 
-# Create a new project
-/project new acme-corp/api-service
+# First time using
+/configure 
+
+# Create a new companion
+/companion new acme-corp/api-service
 
 # Start the intake conversation
 /intake                         # General intake
@@ -113,14 +118,14 @@ cd project-creator
 /checkpoint
 ```
 
-### Onboarding an Existing Project
+### Onboarding an Existing Companion
 
 ```bash
-# Clone your existing project into projects/
-git clone <repo-url> projects/acme-corp/existing-api
+# Clone your existing companion into companions/
+git clone <repo-url> companions/acme-corp/existing-api
 
 # Set it as current
-/project acme-corp/existing-api
+/companion acme-corp/existing-api
 
 # Analyze and fill gaps
 /onboard
@@ -129,8 +134,8 @@ git clone <repo-url> projects/acme-corp/existing-api
 ### Continuing Work
 
 ```bash
-# Set your project
-/project acme-corp/api-service
+# Set your companion
+/companion acme-corp/api-service
 
 # See where you left off
 /gaps
@@ -166,7 +171,7 @@ flowchart TD
     S1 --> |"Capture requirements"| S2
     S2 --> |"Process inputs, identify gaps"| C
     C --> |"Create spec & Linear tickets"| B
-    B --> |"Execute with sub-agents"| done["Configured Project"]
+    B --> |"Execute with sub-agents"| done["Configured Companion"]
 ```
 
 ---
@@ -174,8 +179,8 @@ flowchart TD
 ## Typical Workflow
 
 ```bash
-# 1. Create or set project
-/project new client/project-name
+# 1. Create or set companion
+/companion new client/companion-name
 
 # 2. Seed: Capture requirements
 /intake                    # Interactive requirements gathering
@@ -187,7 +192,7 @@ flowchart TD
 /plan                      # Creates spec + Linear tickets
 # Review tickets in Linear, approve when ready
 
-# 4. Shape: Build the project
+# 4. Shape: Build the companion
 /build                     # Executes tickets with sub-agents
 ```
 
@@ -195,11 +200,12 @@ flowchart TD
 
 ## The Three Phases
 
-Project creation happens in phases:
+Companion creation happens in phases:
 
 | Phase | Focus | Commands |
 |-------|-------|----------|
-| **Seeding** | Capture requirements and context | `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint`, `/read-book`, `/contextualize` |
+| **Setup** | First-time configuration | `/configure` |
+| **Seeding** | Capture requirements and context | `/companion`, `/intake`, `/onboard`, `/process`, `/gaps`, `/checkpoint`, `/read-book`, `/contextualize` |
 | **Cultivation** | Create implementation plan | `/plan` |
 | **Shaping** | Execute plan with sub-agents | `/build` |
 
@@ -209,8 +215,8 @@ Capture enough context that a well-configured Claude Code project can be generat
 
 | Command | Purpose |
 |---------|---------|
-| `/intake` | New project reverse prompting |
-| `/onboard` | Existing project analysis |
+| `/intake` | New companion reverse prompting |
+| `/onboard` | Existing companion analysis |
 | `/process` | Handle external inputs (transcripts, docs) |
 | `/gaps` | Assessment checkpoint |
 | `/checkpoint` | Session capture |
@@ -255,13 +261,13 @@ Execute the implementation plan with specialized sub-agents.
 Project Creator builds **companions** — Claude Code projects composed from reusable components. Each companion is assembled from a **persona** (the "who"), **capabilities** (the "what"), and optionally **library materials** (domain knowledge from books).
 
 ```
-companions/
-├── public/                  ← Shared across all orgs (committed to repo)
-│   ├── personas/            ← The "who" of a companion
+companion-kits/
+├── public-kits/                 ← Shared across all orgs (committed to repo)
+│   ├── personas/                ← The "who" of a companion
 │   │   ├── product-manager/
 │   │   ├── software-developer/
 │   │   └── game-designer/
-│   └── capabilities/        ← The "what" a companion can do
+│   └── capabilities/            ← The "what" a companion can do
 │       ├── reverse-prompting/
 │       ├── context-ecosystem/
 │       ├── strategic-planning/
@@ -272,18 +278,19 @@ companions/
 │       ├── craft-assessment/
 │       ├── process-evolution/
 │       └── knowledge-zones/
-└── private/[org]/           ← Org-specific (git-ignored)
-    ├── personas/
-    ├── capabilities/
-    └── library/             ← Book notes organized by subject
-        └── [subject]/
-            └── [book]/
-                ├── notes.md
-                ├── synthesis.md
-                └── metadata.yaml
+└── private-kits/                ← Org-specific (git-ignored)
+    └── [org]-companion-kit/
+        ├── personas/
+        ├── capabilities/
+        └── library/             ← Book notes organized by subject
+            └── [subject]/
+                └── [book]/
+                    ├── notes.md
+                    ├── synthesis.md
+                    └── metadata.yaml
 ```
 
-**How components flow into a companion project:**
+**How components flow into a companion:**
 
 ```mermaid
 flowchart LR
@@ -299,7 +306,7 @@ flowchart LR
         CTX["/contextualize"]
     end
 
-    subgraph Project["Companion Project"]
+    subgraph Companion["Companion"]
         Ctx["context/"]
         Ref["reference/"]
         Out["CLAUDE.md + commands + skills"]
@@ -321,25 +328,25 @@ The library system has two layers for getting book knowledge into a companion:
 
 **Layer 1: Build the library** — `/read-book --library [org]` reads a book through Kindle Cloud Reader and produces comprehensive, companion-neutral notes stored in the org's library. These notes capture everything notable without filtering for any specific companion's needs. The library entry includes `notes.md` (detailed page-by-page notes), `synthesis.md` (key ideas distilled for discovery), and `metadata.yaml` (subject tags, related personas).
 
-**Layer 2: Contextualize for a companion** — `/contextualize` takes existing library notes and generates a companion-specific reference file. It reads the full `notes.md` chapter by chapter, decides what's relevant for this particular companion, rewrites those concepts with companion-specific applicability, and records what was filtered out. The output goes to `[project]/reference/`.
+**Layer 2: Contextualize for a companion** — `/contextualize` takes existing library notes and generates a companion-specific reference file. It reads the full `notes.md` chapter by chapter, decides what's relevant for this particular companion, rewrites those concepts with companion-specific applicability, and records what was filtered out. The output goes to `[companion]/reference/`.
 
-**Direct reading** — `/read-book` (without `--library`) reads a book directly for a specific companion, producing project-specific notes in one pass. Use this when you don't need the book in the org library.
+**Direct reading** — `/read-book` (without `--library`) reads a book directly for a specific companion, producing companion-specific notes in one pass. Use this when you don't need the book in the org library.
 
 **When to use which:**
 
 | Situation | Approach |
 |-----------|----------|
 | Book is useful to multiple companions | `/read-book --library` then `/contextualize` per companion |
-| Book is only for one companion | `/read-book` (project mode) |
+| Book is only for one companion | `/read-book` (companion mode) |
 | Library entry already exists | `/contextualize` (no re-reading needed) |
 
 ### Committing Your Work
 
-Each sub-project in `projects/` has its own independent git repository, separate from project-creator's repo. After `/build` completes (or at any point during seeding):
+Each companion in `companions/` has its own independent git repository, separate from project-creator's repo. After `/build` completes (or at any point during seeding):
 
 ```bash
-# Navigate to the sub-project
-cd projects/acme-corp/api-service
+# Navigate to the companion
+cd companions/acme-corp/api-service
 
 # Standard git workflow
 git add .
@@ -348,7 +355,7 @@ git remote add origin <your-repo-url>
 git push -u origin main
 ```
 
-Project-creator itself tracks its own changes separately. Changes to companion components, commands, or tracking files are committed in the project-creator repo, not in sub-project repos.
+Project-creator itself tracks its own changes separately. Changes to companion-kits, commands, or tracking files are committed in the project-creator repo, not in companion repos.
 
 ---
 
@@ -371,40 +378,49 @@ This separation ensures:
 
 ## Commands Reference
 
-### `/project` — Manage Project Context
+### `/companion` — Manage Companion Context
 
 | Usage | What It Does |
 |-------|--------------|
-| `/project` | Show current project and list all projects |
-| `/project client/name` | Set current project (must exist) |
-| `/project new client/name` | Create new project and set as current |
+| `/companion` | Show current companion and list all companions |
+| `/companion client/name` | Set current companion (must exist) |
+| `/companion new client/name` | Create new companion and set as current |
 
 **Examples:**
 ```
-/project                                    # What am I working on?
-/project acme-corp/web-app                  # Switch to this project
-/project new startup-inc/api-refactor       # Start a new project
+/companion                                  # What am I working on?
+/companion acme-corp/web-app                # Switch to this companion
+/companion new startup-inc/api-refactor     # Start a new companion
 ```
 
-### `/intake` — New Project Reverse Prompting
+### `/configure` — First-Time Setup
 
-Starts a guided conversation to capture project requirements. Claude asks questions one at a time to draw out what's in your head.
+Sets up your Project Creator environment: default organization, Linear workspace verification, and directory structure validation. Run this once after cloning the repo.
+
+**Examples:**
+```
+/configure                                  # Interactive first-time setup
+```
+
+### `/intake` — New Companion Reverse Prompting
+
+Starts a guided conversation to capture companion requirements. Claude asks questions one at a time to draw out what's in your head.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/intake` | Discover persona through conversation, uses current project |
-| `/intake [persona]` | Start with a known persona for current project |
-| `/intake [persona] [client/project]` | Specify both persona and project |
+| `/intake` | Discover persona through conversation, uses current companion |
+| `/intake [persona]` | Start with a known persona for current companion |
+| `/intake [persona] [client/companion]` | Specify both persona and companion |
 
 **Examples:**
 ```
 /intake                                  # General intake — conversation discovers the persona
 /intake product-manager                  # Accelerate with PM-specific questions
 /intake software-developer               # Accelerate with dev-specific questions
-/intake product-manager acme/app         # Specify persona and project
+/intake product-manager acme/app         # Specify persona and companion
 ```
 
-Covers: **Purpose**, **Users**, **Success criteria**, **Constraints**, **Context**, and **The Quality** (what makes this project distinct). Captured information is written to `[project]/context/` files.
+Covers: **Purpose**, **Users**, **Success criteria**, **Constraints**, **Context**, and **The Quality** (what makes this companion distinct). Captured information is written to `[companion]/context/` files.
 
 **Persona Acceleration:**
 
@@ -418,57 +434,57 @@ You can specify a persona to accelerate intake with persona-specific questions, 
 | `software-developer` | Document-driven AI code generation with developer engagement at planning and review |
 | `game-designer` | Framework-heavy game design analysis |
 
-Private personas may also exist in `companions/private/[org]/personas/`. Run `/intake` without a persona to discover which fits through conversation.
+Private personas may also exist in `companion-kits/private-kits/[org]-companion-kit/personas/`. Run `/intake` without a persona to discover which fits through conversation.
 
-### `/onboard` — Existing Project Analysis
+### `/onboard` — Existing Companion Analysis
 
-For projects that already exist. Analyzes what's there and fills gaps through reverse prompting.
+For companions that already exist. Analyzes what's there and fills gaps through reverse prompting.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/onboard` | Analyze current project |
-| `/onboard [client/project]` | Analyze a specific project |
+| `/onboard` | Analyze current companion |
+| `/onboard [client/companion]` | Analyze a specific companion |
 
 **Examples:**
 ```
-/onboard                                 # Analyze current project
-/onboard acme-corp/existing-api          # Analyze a specific project
+/onboard                                 # Analyze current companion
+/onboard acme-corp/existing-api          # Analyze a specific companion
 ```
 
 Claude analyzes existing files (CLAUDE.md, README, commands, etc.), reports what's FOUND vs MISSING, asks before filling gaps, and uses reverse prompting to capture what's missing.
 
-**Prerequisite:** Clone/copy the project into `projects/[client]/[name]/` first.
+**Prerequisite:** Clone/copy the companion into `companions/[client]/[name]/` first.
 
 ### `/process` — Handle External Inputs
 
-Feed in transcripts, documents, or notes. Claude extracts requirements, constraints, decisions, and questions, then updates project context files.
+Feed in transcripts, documents, or notes. Claude extracts requirements, constraints, decisions, and questions, then updates companion context files.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/process` | Prompts for input, uses current project |
-| `/process [client/project]` | Override project, then prompts for input |
+| `/process` | Prompts for input, uses current companion |
+| `/process [client/companion]` | Override companion, then prompts for input |
 
 **Examples:**
 ```
 /process                                 # Then paste text or give a file path
-/process acme-corp/api-service           # Override project, then paste input
+/process acme-corp/api-service           # Override companion, then paste input
 ```
 
 After invoking, paste text directly or provide a file path when prompted.
 
 ### `/gaps` — Assessment
 
-Checks captured context against what's needed for a complete project definition. Reports gaps with priorities and suggests what to capture next.
+Checks captured context against what's needed for a complete companion definition. Reports gaps with priorities and suggests what to capture next.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/gaps` | Assess current project |
-| `/gaps [client/project]` | Assess a specific project |
+| `/gaps` | Assess current companion |
+| `/gaps [client/companion]` | Assess a specific companion |
 
 **Examples:**
 ```
-/gaps                                    # How complete is the current project?
-/gaps acme-corp/api-service              # Check a specific project
+/gaps                                    # How complete is the current companion?
+/gaps acme-corp/api-service              # Check a specific companion
 ```
 
 ### `/checkpoint` — Session Capture
@@ -477,23 +493,23 @@ Run before ending a session to preserve progress across context boundaries.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/checkpoint` | Capture state for current project |
-| `/checkpoint [client/project]` | Capture state for a specific project |
+| `/checkpoint` | Capture state for current companion |
+| `/checkpoint [client/companion]` | Capture state for a specific companion |
 
 **Examples:**
 ```
 /checkpoint                              # Save before ending session
-/checkpoint acme-corp/api-service        # Save a specific project's state
+/checkpoint acme-corp/api-service        # Save a specific companion's state
 ```
 
 ### `/read-book` — Read and Annotate a Book
 
-Reads a book through Kindle Cloud Reader, taking structured notes in batches of 10 page-flips. Two modes: **project mode** produces companion-specific notes; **library mode** produces comprehensive, companion-neutral notes for the org library.
+Reads a book through Kindle Cloud Reader, taking structured notes in batches of 10 page-flips. Two modes: **companion mode** produces companion-specific notes; **library mode** produces comprehensive, companion-neutral notes for the org library.
 
 | Usage | What It Does |
 |-------|--------------|
-| `/read-book [kindle-url]` | Read for current project (project mode) |
-| `/read-book [kindle-url] [client/project]` | Read for a specific project |
+| `/read-book [kindle-url]` | Read for current companion (companion mode) |
+| `/read-book [kindle-url] [client/companion]` | Read for a specific companion |
 | `/read-book --library [org] [kindle-url]` | Read to org library (library mode) |
 | `/read-book --library [org] [subject] [kindle-url]` | Library mode with subject category |
 
@@ -505,8 +521,8 @@ Reads a book through Kindle Cloud Reader, taking structured notes in batches of 
 /read-book --library consortium.team creative-writing https://read.amazon.com/?asin=B00RLQXBYS
 ```
 
-- **Project mode** writes to `[project]/reference/`
-- **Library mode** writes to `companions/private/[org]/library/[subject]/[book]/`
+- **Companion mode** writes to `[companion]/reference/`
+- **Library mode** writes to `companion-kits/private-kits/[org]-companion-kit/library/[subject]/[book]/`
 - Resumable — if interrupted, re-invoke with the same URL to pick up where you left off
 - Requires a browser connection (Chrome extension or Playwright)
 
@@ -516,14 +532,14 @@ Takes existing companion-neutral library notes and generates a reference file ta
 
 | Usage | What It Does |
 |-------|--------------|
-| `/contextualize [search-term]` | Find book in org library, contextualize for current project |
-| `/contextualize [search-term] [client/project]` | Override project |
+| `/contextualize [search-term]` | Find book in org library, contextualize for current companion |
+| `/contextualize [search-term] [client/companion]` | Override companion |
 
 **Examples:**
 ```
 /contextualize king                                    # Finds king-on-writing in library
 /contextualize story-structure                         # Match by subject tag
-/contextualize king consortium.team/writing-companion  # Override project
+/contextualize king consortium.team/writing-companion  # Override companion
 ```
 
 - Searches the org library by directory name, title, author, or subject tags
@@ -554,7 +570,7 @@ Executes the approved plan using sub-agents:
    - Updates `build-progress.md`
 3. Handles failures with clear attribution
 4. Recovers from interruptions automatically
-5. If a persona was used, updates the persona's `reference-projects.md` with this project as a new reference
+5. If a persona was used, updates the persona's `reference-projects.md` with this companion as a new reference
 
 **Prerequisite:** Run `/plan` first and approve the generated tickets.
 
@@ -568,11 +584,11 @@ project-creator/
 ├── README.md                    # This file
 ├── methodology.md               # Deep reference on reverse prompting
 ├── tracking/
-│   ├── current-project.md       # Which project is active
-│   ├── projects-log.md          # Registry of all projects
+│   ├── current-companion.md     # Which companion is active
+│   ├── projects-log.md          # Registry of all companions
 │   └── patterns-discovered.md   # Learnings for future use
-├── companions/                  # Component-based companion architecture
-│   ├── public/                  # Open source components (committed to repo)
+├── companion-kits/              # Component-based companion architecture
+│   ├── public-kits/             # Open source components (committed to repo)
 │   │   ├── personas/            # The "who" of a companion
 │   │   │   ├── product-manager/
 │   │   │   ├── software-developer/
@@ -581,14 +597,15 @@ project-creator/
 │   │       ├── reverse-prompting/
 │   │       ├── context-ecosystem/
 │   │       └── ...              # 10 capabilities total
-│   └── private/                 # Org-specific (git-ignored)
-│       └── [org]/
+│   └── private-kits/            # Org-specific (git-ignored)
+│       └── [org]-companion-kit/
 │           ├── personas/
 │           ├── capabilities/
 │           └── library/         # Book notes by subject
 ├── .claude/
 │   ├── commands/
-│   │   ├── project.md
+│   │   ├── companion.md
+│   │   ├── configure.md
 │   │   ├── intake.md
 │   │   ├── onboard.md
 │   │   ├── process.md
@@ -601,19 +618,19 @@ project-creator/
 │   └── agents/
 │       ├── ticket-executor.md
 │       └── ticket-verifier.md
-├── templates/                   # Project archetypes (emerges over time)
+├── templates/                   # Companion archetypes (emerges over time)
 ├── docs/                        # Documentation and guides
-└── projects/                    # Sub-projects (git-ignored)
+└── companions/                  # Companion working directories (git-ignored)
     └── [client]/
-        └── [project]/           # Each has its own git repo
+        └── [companion]/         # Each has its own git repo
 ```
 
-### Sub-Project Structure
+### Companion Structure
 
-When you create a project, it gets:
+When you create a companion, it gets:
 
 ```
-projects/client/project/
+companions/client/companion/
 ├── .git/               # Independent git repo
 └── context/
     ├── requirements.md # Captured requirements
@@ -621,23 +638,23 @@ projects/client/project/
     └── decisions.md    # Decisions made during intake
 ```
 
-After `/plan`, the project also has:
+After `/plan`, the companion also has:
 
 ```
-projects/client/project/
+companions/client/companion/
 ├── implementation-spec.md  # Detailed implementation specification
 └── tickets.yaml            # Structured tickets for /build
 ```
 
-After `/build`, the project has full Claude Code configuration:
+After `/build`, the companion has full Claude Code configuration:
 
 ```
-projects/client/project/
-├── CLAUDE.md           # Project instructions
+companions/client/companion/
+├── CLAUDE.md           # Companion instructions
 ├── README.md           # Documentation
 ├── build-progress.md   # Build execution log
 └── .claude/
-    └── commands/       # Project-specific commands
+    └── commands/       # Companion-specific commands
 ```
 
 ---
@@ -646,16 +663,17 @@ projects/client/project/
 
 | Situation | Command |
 |-----------|---------|
-| Starting fresh with an idea | `/project new` then `/intake` |
-| Starting with a known persona (e.g., PM) | `/project new` then `/intake product-manager` |
+| Starting fresh with an idea | `/companion new` then `/intake` |
+| Starting with a known persona (e.g., PM) | `/companion new` then `/intake product-manager` |
 | Have an existing codebase | Clone it, then `/onboard` |
 | Have meeting notes or transcripts | `/process` |
 | Want to see what's missing | `/gaps` |
 | Ending a work session | `/checkpoint` |
 | Reading a book for the org library | `/read-book --library [org] [kindle-url]` |
 | Applying library notes to a companion | `/contextualize [search-term]` |
-| Reading a book directly for a project | `/read-book [kindle-url]` |
-| Switching between projects | `/project client/name` |
+| Reading a book directly for a companion | `/read-book [kindle-url]` |
+| Switching between companions | `/companion client/name` |
+| First-time setup after cloning | `/configure` |
 | Ready to plan implementation | `/plan` |
 | Plan approved, ready to build | `/build` |
 
@@ -673,7 +691,7 @@ projects/client/project/
 
 5. **Always `/checkpoint`** — Context can be lost. Checkpoints preserve progress.
 
-6. **Projects evolve** — The first pass won't be perfect. That's expected.
+6. **Companions evolve** — The first pass won't be perfect. That's expected.
 
 7. **Review before `/build`** — Check the Linear tickets created by `/plan` before executing.
 
@@ -713,10 +731,10 @@ A persona defines the companion's identity, voice, and domain expertise. Each pe
 Use a persona by passing it to `/intake`:
 
 ```bash
-/project new my-company/my-product-pm
+/companion new my-company/my-product-pm
 /intake product-manager
 
-/project new my-company/my-web-app
+/companion new my-company/my-web-app
 /intake software-developer
 ```
 
@@ -736,24 +754,24 @@ The library stores book notes organized by subject, shared across all companions
 
 ### Public vs. Private
 
-- **Public components** (`companions/public/`) are committed to the repo — personas and capabilities that are useful to anyone.
-- **Private components** (`companions/private/[org]/`) are git-ignored — org-specific personas, capabilities, and library materials.
+- **Public components** (`companion-kits/public-kits/`) are committed to the repo — personas and capabilities that are useful to anyone.
+- **Private components** (`companion-kits/private-kits/[org]-companion-kit/`) are git-ignored — org-specific personas, capabilities, and library materials.
 
 ### Creating New Personas
 
-Personas emerge from successful projects. When a companion pattern has been used 2+ times and the patterns are clear, extract it:
+Personas emerge from successful companions. When a companion pattern has been used 2+ times and the patterns are clear, extract it:
 
-1. Create `companions/public/[persona-name]/` (or `companions/private/[org]/personas/[persona-name]/` for org-specific)
+1. Create `companion-kits/public-kits/personas/[persona-name]/` (or `companion-kits/private-kits/[org]-companion-kit/personas/[persona-name]/` for org-specific)
 2. Write the persona files following the structure above
 3. Add the first reference project
-4. Test it by running `/intake [persona-name]` for a new project
+4. Test it by running `/intake [persona-name]` for a new companion
 
 ### A Note on Reference Projects
 
 Each persona includes a `reference-projects.md` that documents successful implementations — configuration choices, key decisions, what worked, files worth studying. These are enormously helpful for accelerating future companions of the same type.
 
-However, reference projects point to actual project paths in your `projects/` directory, which is private and git-ignored. So `reference-projects.md` is also git-ignored for public personas — it wouldn't be useful to someone who doesn't have your projects.
+However, reference projects point to actual companion paths in your `companions/` directory, which is private and git-ignored. So `reference-projects.md` is also git-ignored for public personas — it wouldn't be useful to someone who doesn't have your companions.
 
-**The good news:** `/build` automatically updates `reference-projects.md` after completing a build for any project that was created from a persona. You don't need to do anything — each successful build adds itself as a reference for the next companion of that type.
+**The good news:** `/build` automatically updates `reference-projects.md` after completing a build for any companion that was created from a persona. You don't need to do anything — each successful build adds itself as a reference for the next companion of that type.
 
 When you clone this repo or start using a public persona for the first time, you won't have a `reference-projects.md` yet. That's fine — the persona works without it. Your first `/build` will create it.
