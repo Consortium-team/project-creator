@@ -1,12 +1,12 @@
-# /onboard — Existing Project Analysis
+# /onboard — Existing Companion Analysis
 
-Analyze an existing project and fill gaps through reverse prompting.
+Analyze an existing companion and fill gaps through reverse prompting.
 
 ## Usage
 
 ```
-/onboard                     # Use current project
-/onboard [client/project]    # Override for specific project
+/onboard                       # Use current companion
+/onboard [client/companion]    # Override for specific companion
 ```
 
 ## Argument: $ARGUMENTS
@@ -15,23 +15,23 @@ Analyze an existing project and fill gaps through reverse prompting.
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set and no argument given:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set and no argument given:
    ```
-   No project set. Use /project to set one first:
-     /project [client/project]
+   No companion set. Use /companion to set one first:
+     /companion [client/companion]
    ```
 
-4. Verify the project directory exists at `projects/[client]/[project]/`
+4. Verify the companion directory exists at `companions/[client]/[companion]/`
 
 ---
 
-### Step 2: Scan the Project
+### Step 2: Scan the Companion
 
-Analyze what exists in the project directory. Look for:
+Analyze what exists in the companion directory. Look for:
 
 **Configuration Files:**
 - `CLAUDE.md` — Project configuration for Claude
@@ -57,7 +57,7 @@ Analyze what exists in the project directory. Look for:
 
 ### Step 3: Analyze Against Methodology
 
-Compare what exists against what a well-configured project needs:
+Compare what exists against what a well-configured companion needs:
 
 **Configuration Checklist:**
 | Item | Status | Notes |
@@ -86,7 +86,7 @@ Compare what exists against what a well-configured project needs:
 Present findings in this format:
 
 ```
-## Onboard Analysis: [project]
+## Onboard Analysis: [companion]
 
 ### FOUND
 - [list what exists and is well-documented]
@@ -134,7 +134,7 @@ What's missing is [specific gap]. Let me ask about that:
 
 ### Step 6: Write to Context Files
 
-Create or update context files in `projects/[client]/[project]/context/`:
+Create or update context files in `companions/[client]/[companion]/context/`:
 
 - If context files don't exist, create them
 - If they exist, append or update (don't overwrite existing good content)
@@ -142,22 +142,22 @@ Create or update context files in `projects/[client]/[project]/context/`:
 
 ---
 
-### Step 7: Update Project Status
+### Step 7: Update Companion Status
 
-If the project was newly onboarded:
+If the companion was newly onboarded:
 
 1. **Add to `tracking/projects-log.md`** if not already there
    - Status: `seeding`
-   - Note: "Onboarded existing project"
+   - Note: "Onboarded existing companion"
 
-2. **Update `tracking/current-project.md`** if this should be current
+2. **Update `tracking/current-companion.md`** if this should be current
 
 ---
 
 ### Step 8: Summarize
 
 ```
-## Onboard Complete: [project]
+## Onboard Complete: [companion]
 
 **Analyzed:**
 - [count] configuration files
@@ -181,7 +181,7 @@ If the project was newly onboarded:
 
 ## Key Principle
 
-The user cloned this project for a reason — they have context about it. Your job is to:
+The user cloned this companion for a reason — they have context about it. Your job is to:
 
 1. **See what's there** — Don't assume it's undocumented
 2. **Identify true gaps** — Not everything needs to be captured

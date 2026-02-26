@@ -5,8 +5,8 @@ Extract structured information from transcripts, documents, or notes.
 ## Usage
 
 ```
-/process                     # Prompts for input, uses current project
-/process [client/project]    # Override project, then prompts for input
+/process                     # Prompts for input, uses current companion
+/process [client/companion]    # Override companion, then prompts for input
 ```
 
 After invoking, paste text or provide a file path when prompted.
@@ -17,13 +17,13 @@ After invoking, paste text or provide a file path when prompted.
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set:
    ```
-   No project set. Use /project to set or create one first.
+   No companion set. Use /companion to set or create one first.
    ```
 
 ---
@@ -33,7 +33,7 @@ After invoking, paste text or provide a file path when prompted.
 If no content was provided with the command:
 
 ```
-Ready to process input for [project].
+Ready to process input for [companion].
 
 You can:
 1. Paste text directly (transcript, notes, etc.)
@@ -51,7 +51,7 @@ What would you like me to process?
 
 Read through the input and extract:
 
-**Requirements** — Things the project must do
+**Requirements** — Things the companion must do
 - Explicit statements: "it needs to...", "we want...", "must have..."
 - Implicit needs revealed by problems described
 - User stories or use cases mentioned
@@ -73,7 +73,7 @@ Read through the input and extract:
 - Missing information
 - Assumptions that should be validated
 
-**Context** — Background that helps understand the project
+**Context** — Background that helps understand the companion
 - Domain knowledge
 - Related systems
 - User personas
@@ -140,7 +140,7 @@ If user wants to clarify, ask **one question at a time** and capture the answers
 
 ### Step 6: Update Context Files
 
-After confirmation, update the project's context files:
+After confirmation, update the companion's context files:
 
 **`context/requirements.md`**
 - Append new requirements under a dated section:
@@ -177,7 +177,7 @@ After confirmation, update the project's context files:
 ```
 ## Processed: [brief description of input]
 
-**Added to [project]:**
+**Added to [companion]:**
 - [N] requirements
 - [N] constraints
 - [N] decisions

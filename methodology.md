@@ -397,23 +397,23 @@ Some projects create or manage other projects. These "meta-projects" require spe
 ```
 parent-project/
 ├── CLAUDE.md                    # Parent configuration
-├── .gitignore                   # Contains: projects/ (ignores entire folder)
+├── .gitignore                   # Contains: companions/ (ignores entire folder)
 ├── tracking/
-│   └── current-project.txt      # Format: client/project-name
-└── projects/                    # Git-ignored; sub-projects live here
+│   └── current-companion.md     # Format: client/companion-name
+└── companions/                  # Git-ignored; companion projects live here
     ├── [client-a]/
-    │   ├── [project-1]/
-    │   │   ├── CLAUDE.md        # Sub-project's own config
+    │   ├── [companion-1]/
+    │   │   ├── CLAUDE.md        # Companion's own config
     │   │   └── ...              # Independent git repo
-    │   └── [project-2]/
+    │   └── [companion-2]/
     └── [client-b]/
-        └── [project-3]/
+        └── [companion-3]/
 ```
 
 **Example:**
 ```
 project-creator/
-└── projects/
+└── companions/
     ├── acme-corp/
     │   └── api-refactor/
     ├── startup-inc/
@@ -424,22 +424,22 @@ project-creator/
 ```
 
 **Key principles:**
-1. **Git isolation** — The `projects/` folder is git-ignored; sub-projects have their own independent repos
-2. **Client grouping** — Projects organized by client for multi-client workflows
+1. **Git isolation** — The `companions/` folder is git-ignored; companion projects have their own independent repos
+2. **Client grouping** — Companions organized by client for multi-client workflows
 3. **CLAUDE.md at root** — Parent's CLAUDE.md instructs Claude Code to ignore child CLAUDE.md files when working at parent level
 4. **Shared directory access** — Both Cowork and Claude Code pointed at parent can see parent + all client/project children
 5. **Context separation** — When working IN a sub-project (Claude Code pointed there), only sub-project context applies
 
-### The Current Project Pattern
+### The Current Companion Pattern
 
-**Use case:** Commands that need to know which sub-project to operate on.
+**Use case:** Commands that need to know which companion to operate on.
 
 **Implementation:**
-- Store current project in simple state file (e.g., `tracking/current-project.txt`)
-- Project references use `client/project-name` format
-- All commands accept optional `[client/project]` parameter
-- If no parameter, use current project
-- If no current project and no parameter, list clients/projects and ask
+- Store current companion in simple state file (e.g., `tracking/current-companion.md`)
+- Companion references use `client/companion-name` format
+- All commands accept optional `[client/companion]` parameter
+- If no parameter, use current companion
+- If no current companion and no parameter, list clients/companions and ask
 
 **Command pattern:**
 ```

@@ -1,32 +1,35 @@
 # =============================================================================
 # CLIENT CONFIDENTIALITY PROTECTION
 # =============================================================================
-# All client work happens in projects/ - this folder is NEVER committed.
-# Tracking contains references to active client projects - also NEVER committed.
-# This ensures client names, project details, and work products stay private.
+# All client work happens in companions/ - this folder is NEVER committed.
+# Tracking contains references to active client companions - also NEVER committed.
+# This ensures client names, companion details, and work products stay private.
 # =============================================================================
 
-# Client projects - each has its own independent git repo
+# Companion projects - each has its own independent git repo
 # This is the PRIMARY confidentiality protection
+companions/
+
+# Legacy projects directory (migrated to companions/ by /configure)
 projects/
 
-# Project tracking - contains client/project references and activity logs
+# Project tracking - contains client/companion references and activity logs
 tracking/
 
 # Project ideas - may contain proprietary or confidential concepts
 project-ideas/
 
 # =============================================================================
-# COMPANION ARCHITECTURE
+# COMPANION KITS
 # =============================================================================
 
-# Private companions - org-specific personas, capabilities, and library
+# Private companion kits - org-specific personas, capabilities, and library
 # Each org directory can be independently version-controlled with its own git repo
-companions/private/
+companion-kits/private-kits/
 
-# Reference projects in public personas - these reference private project paths
+# Reference projects in public personas - these reference private paths
 # that won't exist for other users. Each user builds their own over time.
-companions/public/personas/*/reference-projects.md
+companion-kits/public-kits/personas/*/reference-projects.md
 
 # =============================================================================
 # LEGACY PROJECT TYPES (kept during migration, remove after confirmed)

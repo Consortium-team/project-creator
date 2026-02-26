@@ -5,8 +5,8 @@ Assess what's captured vs. what's needed for a complete project definition.
 ## Usage
 
 ```
-/gaps                     # Use current project
-/gaps [client/project]    # Override for specific project
+/gaps                     # Use current companion
+/gaps [client/companion]    # Override for specific companion
 ```
 
 ## Argument: $ARGUMENTS
@@ -18,10 +18,10 @@ Assess what's captured vs. what's needed for a complete project definition.
 ### Step 1: Determine the Project
 
 1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
+2. Otherwise, read `tracking/current-companion.md` for the current project
 3. If no project is set:
    ```
-   No project set. Use /project to set or create one first.
+   No companion set. Use /companion to set or create one first.
    ```
 
 ---

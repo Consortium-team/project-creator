@@ -1,17 +1,17 @@
-# /intake — New Project Reverse Prompting
+# /intake — New Companion Reverse Prompting
 
-Draw out project requirements through guided conversation. Discovers which persona and capabilities fit through conversation.
+Draw out companion requirements through guided conversation. Discovers which persona and capabilities fit through conversation.
 
 ## Usage
 
 ```
-/intake                           # Use current project — discover persona through conversation
-/intake [client/project]          # Override for specific project
-/intake [persona]                 # Start with a known persona for current project
-/intake [persona] [client/project]   # Both persona and project
+/intake                           # Use current companion — discover persona through conversation
+/intake [client/companion]        # Override for specific companion
+/intake [persona]                 # Start with a known persona for current companion
+/intake [persona] [client/companion]   # Both persona and companion
 ```
 
-**Personas** accelerate intake with persona-specific questions. Available personas are in `companions/public/personas/` and `companions/private/[org]/personas/`.
+**Personas** accelerate intake with persona-specific questions. Available personas are in `companion-kits/public-kits/personas/` and `companion-kits/private-kits/[org]-companion-kit/personas/`.
 
 ## Argument: $ARGUMENTS
 
@@ -19,32 +19,32 @@ Draw out project requirements through guided conversation. Discovers which perso
 
 ## Instructions
 
-### Step 1: Determine the Project
+### Step 1: Determine the Companion
 
-1. If `$ARGUMENTS` contains a project path, use that
-2. Otherwise, read `tracking/current-project.md` for the current project
-3. If no project is set and no argument given, ask the user to set one first:
+1. If `$ARGUMENTS` contains a companion path, use that
+2. Otherwise, read `tracking/current-companion.md` for the current companion
+3. If no companion is set and no argument given, ask the user to set one first:
    ```
-   No project set. Use /project to set or create one first:
-     /project new [client/project]
+   No companion set. Use /companion to set or create one first:
+     /companion new [client/companion]
    ```
 
-4. Verify the project directory exists at `projects/[client]/[project]/`
+4. Verify the companion directory exists at `companions/[client]/[companion]/`
 
-**Determine the organization** from the client portion of the path (e.g., `consortium.team` from `consortium.team/my-project`). This is used to search for org-specific personas, capabilities, and library materials.
+**Determine the organization** from the client portion of the path (e.g., `consortium.team` from `consortium.team/my-companion`). This is used to search for org-specific personas, capabilities, and library materials.
 
 ---
 
 ### Step 2: Check Existing Context
 
-Read any existing context files in `projects/[client]/[project]/context/`:
+Read any existing context files in `companions/[client]/[companion]/context/`:
 - `requirements.md`
 - `constraints.md`
 - `decisions.md`
 
 If context already exists, acknowledge it:
 ```
-I see some context has already been captured for [project]:
+I see some context has already been captured for [companion]:
 - [summary of what exists]
 
 We can continue from here, or start fresh. What would you prefer?
@@ -57,8 +57,8 @@ We can continue from here, or start fresh. What would you prefer?
 If `$ARGUMENTS` contains a persona name, search for it:
 
 1. **Search for the persona** in both public and org-private directories:
-   - `companions/public/personas/[persona]/PERSONA.md`
-   - `companions/private/[org]/personas/[persona]/PERSONA.md`
+   - `companion-kits/public-kits/personas/[persona]/PERSONA.md`
+   - `companion-kits/private-kits/[org]-companion-kit/personas/[persona]/PERSONA.md`
 
 2. **Read the persona's files:**
    - `PERSONA.md` — Identity, voice, key concepts
@@ -68,7 +68,7 @@ If `$ARGUMENTS` contains a persona name, search for it:
 
 3. **Note the persona in `context/decisions.md`:**
    ```markdown
-   | Persona: [persona] | Loaded from companions/{public,private}/[org]/personas/[persona] | [date] |
+   | Persona: [persona] | Loaded from companion-kits/{public-kits,private-kits}/[org]-companion-kit/personas/[persona] | [date] |
    ```
 
 4. Use the persona's intake questions **in addition to** the core questions below. Persona questions help reach known-good configurations faster.
@@ -87,9 +87,9 @@ If `$ARGUMENTS` contains a persona name, search for it:
 
 Start with:
 ```
-Let's capture what this project is about. I'll ask questions one at a time.
+Let's capture what this companion is about. I'll ask questions one at a time.
 
-What problem does [project] solve? Or put another way — why does this project need to exist?
+What problem does [companion] solve? Or put another way — why does this companion need to exist?
 ```
 
 ---
@@ -103,7 +103,7 @@ Work through these areas, but **adapt based on answers**. Don't mechanically go 
 **1. Purpose (start here)**
 - What problem does this solve?
 - Why does it matter? What happens if it doesn't get built?
-- What's the "one thing" this project must do well?
+- What's the "one thing" this companion must do well?
 
 **2. Users**
 - Who will use this?
@@ -128,7 +128,7 @@ Work through these areas, but **adapt based on answers**. Don't mechanically go 
 - Domain knowledge needed?
 
 **6. The Quality**
-- What makes this project distinct from similar ones?
+- What makes this companion distinct from similar ones?
 - What's the "feel" you're going for?
 - If you had to explain this to someone in one sentence, what would you say?
 
@@ -141,8 +141,8 @@ After covering the core questions (especially Purpose, Users, and The Quality), 
 **Scan available personas:**
 
 1. Read all PERSONA.md files from:
-   - `companions/public/personas/*/PERSONA.md`
-   - `companions/private/[org]/personas/*/PERSONA.md` (if org is known)
+   - `companion-kits/public-kits/personas/*/PERSONA.md`
+   - `companion-kits/private-kits/[org]-companion-kit/personas/*/PERSONA.md` (if org is known)
 
 2. Compare the captured requirements against each persona's "When to Use" criteria.
 
@@ -171,8 +171,8 @@ After the persona is identified (or if no persona fits):
 1. **Read the persona's `typical-capabilities.md`** for recommended capabilities.
 
 2. **Scan available capabilities:**
-   - `companions/public/capabilities/*/CAPABILITY.md`
-   - `companions/private/[org]/capabilities/*/CAPABILITY.md` (if any exist)
+   - `companion-kits/public-kits/capabilities/*/CAPABILITY.md`
+   - `companion-kits/private-kits/[org]-companion-kit/capabilities/*/CAPABILITY.md` (if any exist)
 
 3. **Suggest capabilities based on conversation:**
    ```
@@ -197,10 +197,10 @@ After the persona is identified (or if no persona fits):
 
 ### Step 4d: Suggest Library Materials
 
-If the organization has a library (`companions/private/[org]/library/`):
+If the organization has a library (`companion-kits/private-kits/[org]-companion-kit/library/`):
 
 1. **Scan library entries:**
-   - Read `metadata.yaml` files in `companions/private/[org]/library/**/metadata.yaml`
+   - Read `metadata.yaml` files in `companion-kits/private-kits/[org]-companion-kit/library/**/metadata.yaml`
 
 2. **Match by subject tags and persona relevance:**
    - Compare library entry `subjects` and `related_personas` against the companion being created
@@ -240,7 +240,7 @@ When answers are vague, push deeper:
 
 After each major area is covered, write to the appropriate context file:
 
-**`context/requirements.md`** — What the project must do
+**`context/requirements.md`** — What the companion must do
 ```markdown
 # Requirements
 
@@ -278,7 +278,7 @@ After each major area is covered, write to the appropriate context file:
 ```markdown
 # Decisions
 
-Decisions made during project intake.
+Decisions made during companion intake.
 
 | Decision | Rationale | Date |
 |----------|-----------|------|
@@ -324,7 +324,7 @@ After covering the key areas:
 ### Step 8: Suggest Next Steps
 
 ```
-Context captured for [project].
+Context captured for [companion].
 
 Next steps:
   /process   — Feed in any existing documents or transcripts
@@ -338,7 +338,7 @@ Next steps:
 
 - **One question at a time** — Don't overwhelm
 - **Listen more than talk** — Your job is to extract, not generate
-- **Push for concrete** — Vague requirements become vague projects
+- **Push for concrete** — Vague requirements become vague companions
 - **It's okay to not know** — "Not sure yet" is valuable information
 - **Capture decisions** — Why something was decided matters as much as what
 - **The quality matters** — What makes this distinct is often the key insight

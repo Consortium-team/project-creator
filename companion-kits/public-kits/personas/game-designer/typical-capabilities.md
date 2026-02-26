@@ -1,6 +1,6 @@
 # Game Designer: Typical Capabilities
 
-Which capabilities from `companions/public/capabilities/` this persona typically uses, and how.
+Which capabilities from `companion-kits/public-kits/capabilities/` this persona typically uses, and how.
 
 ---
 
