@@ -6,6 +6,11 @@ Which capabilities from `companion-kits/public-kits/capabilities/` this persona 
 
 ## Core Capabilities (Always Include)
 
+### Claude Code Configuration
+**Role:** The infrastructure layer that makes all other capabilities work reliably.
+**How it's used:** Distributes instructions across the reliability hierarchy — hooks for enforcement, skills for workflows (LOW freedom for generative tasks like email drafting and report generation), agents with preloaded skills for isolated execution, rules for domain patterns, lean CLAUDE.md for identity. PM companions are the heaviest users because generative tasks (emails, prep reports, strategic recommendations) need maximum enforcement to prevent training-data pattern substitution.
+**Customization:** SessionStart hook includes skill-checking reminder. Communication standards enforced via hooks or low-freedom skills. All multi-phase commands (process-meeting, write-followup, start-day) defined as low-freedom skills with compliance checkpoints.
+
 ### Reverse Prompting
 **Role:** The foundational interaction pattern for PM companions.
 **How it's used:** Seeding commands (explore, process) are predominantly reverse prompting — Claude asks, founder answers. The PM extracts and structures what the founder knows but hasn't articulated.

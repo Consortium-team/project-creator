@@ -6,6 +6,11 @@ Which capabilities from `companion-kits/public-kits/capabilities/` this persona 
 
 ## Core Capabilities (Always Include)
 
+### Claude Code Configuration
+**Role:** The infrastructure layer that makes all other capabilities work reliably.
+**How it's used:** Distributes instructions across the reliability hierarchy — hooks for code conventions enforcement, skills for build/plan workflows, agents with tool whitelists for implementation and verification, rules path-scoped to file types (test patterns, code style), lean CLAUDE.md for tech stack and architecture. Lighter enforcement during implementation (structured extraction aligns with training patterns) but heavier during planning and spec generation (generative tasks need low-freedom skills).
+**Customization:** SessionStart hook with code conventions. Path-scoped rules for test files, source files, and documentation. Executor/verifier agent pattern with Haiku for search, Sonnet for verification, Opus for implementation.
+
 ### Context Ecosystem
 **Role:** The foundation of document-driven development.
 **How it's used:** requirements.md, constraints.md, decisions.md, questions.md — plus the docs context ecosystem (living documents, active documents, permanent documents). The 6-document active set pattern.
