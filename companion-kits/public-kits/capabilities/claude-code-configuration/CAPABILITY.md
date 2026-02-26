@@ -43,6 +43,55 @@ The core organizing principle. Five mechanisms, ranked by how reliably Claude fo
 
 ---
 
+## The Three-Layer Architecture
+
+The reliability hierarchy tells you *where* to put instructions. The three-layer architecture tells you *how commands, agents, and skills compose* into reliable workflows. This is the most important architectural pattern in any companion project.
+
+### The Pattern
+
+```
+USER → ORCHESTRATOR (skill) → AGENT (subagent) ← REFERENCE SKILL (preloaded)
+```
+
+Each layer has a distinct responsibility:
+
+**Orchestrator** (skill with `disable-model-invocation: true`):
+Thin wrapper that handles user-facing concerns. Validates inputs, sequences phases, dispatches to agents, presents output, gates on human approval. Does NOT do heavy analytical or generative work itself.
+
+**Agent** (`.claude/agents/`):
+Specialized executor with narrow scope. Handles the heavy work: reading many files, synthesizing content, generating drafts. Has reference skills preloaded for standards it must follow. Returns output to the orchestrator.
+
+**Reference Skill** (listed in agent's `skills:` frontmatter):
+Authoritative standards document. NOT a procedure — a reference. The agent defers to it for cross-cutting concerns (tone, format, domain conventions). Update the skill once, all agents that use it get the update.
+
+### The Clean Separation
+
+| Layer | Owns | Example |
+|-------|------|---------|
+| Orchestrator | The "what" and "when" | Validate client exists, choose meeting, present draft, get approval |
+| Agent | The "how" | Read living profile, synthesize meeting insights, draft email, self-critique |
+| Reference Skill | The "to what standard" | Communication tone, email structure, language to avoid |
+
+**Reference implementation**: `write-followup` (orchestrator) → `email-writer` (agent, model: opus, skills: client-communication) → `client-communication` (reference skill, sole authority on structure/tone).
+
+In this example:
+- `write-followup` validates the client name, resolves the meeting date, checks prerequisites, invokes the agent, presents the draft, and waits for the user's decision (send/edit/regenerate/skip). It never writes the email itself.
+- `email-writer` reads the living profile and activity logs, determines meeting weight, weaves conversation threads, drafts the email, and self-critiques against quality indicators. It defers to `client-communication` for all structure and tone decisions.
+- `client-communication` defines the email format, the "lead with what matters" principle, language to avoid, and concrete good/bad examples. It's injected at agent startup — the agent doesn't need to read it.
+
+### When You Don't Need All Three Layers
+
+Not every workflow needs an agent. The test: **does this workflow need to read many files and produce substantial output?**
+
+- **Yes** → Use the three-layer pattern. The orchestrator handles user interaction; the agent handles synthesis.
+- **No, it's primarily dialogue with the user** → A single skill suffices. No agent needed.
+
+Example: The `record` command is a single skill. It scans recent messages, asks reverse-prompting questions, presents a recording plan, and writes to files. There's no heavy synthesis step — it's interactive dialogue with the user. No agent dispatch needed.
+
+Example: The `write-followup` command needs all three layers. The email-writer agent reads 15-35K tokens of living profile and activity logs, synthesizes thread continuity, drafts strategic content, and self-critiques. That work belongs in an isolated agent context, not in the main conversation.
+
+---
+
 ## Configuration Surfaces
 
 ### 1. Hooks — The Enforcement Layer
@@ -77,26 +126,25 @@ Hooks are shell scripts that fire deterministically on specific events. They byp
 
 ### 2. Skills — The Workflow Layer
 
-Skills are the recommended mechanism for multi-step procedures, workflows, and commands. They replaced the older `/commands` pattern and offer better loading behavior and richer frontmatter.
+Skills are the recommended mechanism for workflows, commands, and authoritative standards. They replaced the older `.claude/commands/` pattern (Jan 2026, v2.1.1) and offer better loading behavior, richer frontmatter, and supporting file directories. Commands still work (backward compatible), but `.claude/skills/<name>/SKILL.md` is recommended for new work.
+
+**Shared properties across all skill types:**
+
+- **Description is the dispatch mechanism.** A good description (clear about when the skill applies) improves activation by 20-50%. This is the single highest-leverage field in the frontmatter.
+- **Supporting files.** Skills can reference files one directory level deep. Keep skills under 500 lines.
+- **Three freedom levels:** High (guidance), Medium (structured workflows), Low (critical procedures with compliance checkpoints).
+
+Skills serve two fundamentally different roles — and conflating them is a common architectural mistake:
+
+#### Orchestrator Skills (User-Invoked Workflows)
+
+Orchestrators are the user-facing entry points. They are thin wrappers that validate, dispatch, present, and gate — never doing the heavy analytical or generative work themselves.
 
 **Key properties:**
 
-- **Description is the dispatch mechanism.** A good description (clear about when the skill applies) improves activation by 20-50%. This is the single highest-leverage field in the frontmatter.
-- **On-demand loading.** Metadata loads at session start; full content loads when invoked. This means skills don't compete for attention until they're needed.
-- **Supporting files.** Skills can reference files one directory level deep. Keep skills under 500 lines.
-- **In agents via `skills:` frontmatter** — Full text is injected at agent startup. The agent sees the skill as primary context. Never tell an agent to "read" a preloaded skill — it's already loaded.
-
-**Three freedom levels:**
-
-| Level | When to Use | Pattern |
-|-------|-------------|---------|
-| **High** | Guidance, principles | "Consider these factors when..." |
-| **Medium** | Structured workflows | Pseudocode with decision points |
-| **Low** | Critical procedures | Exact steps, exact output format, compliance checkpoints |
-
-**The freedom level rule**: Use LOW freedom for any multi-step procedure that has failed when written as guidance. The "reasoning vs executing" anti-pattern — where Claude interprets a specification instead of following it — is solved by low-freedom skills with explicit checkpoints, not by adding emphasis to high-freedom guidance.
-
-**Compliance checkpoints**: For multi-phase workflows, require the model to output collected values between phases. This forces demonstration of compliance at generation time rather than hoping for it.
+- **`disable-model-invocation: true`** — Only user triggers these (via `/skill-name`). Claude cannot invoke them autonomously.
+- **Thin wrappers.** Validate → orchestrate → present → gate. The orchestrator is a procedure, not guidance. Use LOW freedom.
+- **Compliance checkpoints between phases.** Require the model to output collected values before proceeding:
 
 ```
 Phase 1 Complete. Collected values:
@@ -106,6 +154,29 @@ Phase 1 Complete. Collected values:
 
 Proceeding to Phase 2.
 ```
+
+- **Human gates.** After agent returns output, present to user and wait for approval before any action (send, write, modify).
+- **Agent dispatch pattern.** Read agent definition → note model and skills → build complete prompt with actual values → call Task tool.
+
+**Frontmatter additions (beyond commands):** `argument-hint` (parameter description shown in UI), `allowed-tools` (tool restrictions), `context: fork` (isolated execution — skill content becomes the agent's task).
+
+**Example**: `write-followup` — validates client, resolves meeting date, checks prerequisites, invokes `email-writer` agent, presents draft, waits for user decision. Never writes the email itself.
+
+#### Reference Skills (Preloaded Into Agents)
+
+Reference skills are authoritative standards documents. They define *what good looks like* — not procedures to follow. The agent defers to the skill; the skill is the sole authority on its domain.
+
+**Key properties:**
+
+- **Listed in agent `skills:` frontmatter.** Full text is injected at agent startup. The agent sees the skill as primary context. Never tell an agent to "read" a preloaded skill — it's already loaded.
+- **NOT procedures — reference documents.** Standards, concrete examples (good/bad contrasts), anti-patterns, domain conventions.
+- **DRY for standards.** Update once → all agents that use the skill get the update. Multiple agents can share the same reference skill.
+- **Can be longer than orchestrators.** These are injected as primary context into agents, so length serves the agent's needs, not the user's attention span.
+- **`user-invocable: false`** (or simply never invoked by users — just listed in agent frontmatter).
+
+**Example**: `client-communication` — defines email structure, the "lead with what matters" principle, language to avoid, good/bad examples. Preloaded into `email-writer` agent. The agent defers to it for all tone and format decisions.
+
+**The freedom level rule**: Use LOW freedom for orchestrator skills (procedures that must execute exactly). Use HIGH or MEDIUM freedom for reference skills (guidance the agent applies with judgment to varied situations).
 
 ### 3. Agents — The Isolation Layer
 
@@ -208,6 +279,34 @@ Token efficiency is a cross-cutting concern that affects all configuration surfa
 | Long CLAUDE.md with workflow details | Workflows compete with identity for attention; both lose | Move workflows to skills |
 | Repeating instructions that keep failing | Repetition doesn't fix structural misplacement | Move the instruction to a higher-reliability tier |
 | Same enforcement for all task types | Structured extraction needs less; generative synthesis needs more | Match enforcement to task type |
+| Fat orchestrators that do heavy work | Orchestrator context fills with synthesis work; output presentation suffers; no isolation benefit | Delegate heavy work to agents; orchestrator only validates, dispatches, presents, gates |
+| Agents without preloaded reference skills | Agent improvises standards (tone, format, structure) instead of deferring to authoritative source | Add reference skills to agent `skills:` frontmatter for cross-cutting standards |
+| Skipping validation before agent dispatch | Agent receives bad inputs (wrong paths, missing files); wastes tokens discovering errors | Orchestrator validates all inputs and confirms prerequisites before invoking agent |
+| Missing the human gate | Orchestrator presents agent output but acts on it without waiting for user approval | Always gate: present output → wait for explicit user decision → then act |
+
+---
+
+## Migration from Commands to Skills
+
+**For new companions**: Always use `.claude/skills/<name>/SKILL.md` directory structure. Do not create `.claude/commands/` files. The skills path provides: directory for supporting files, frontmatter control over invocation (`disable-model-invocation`, `user-invocable`), `context: fork` for isolated execution, and future-proofing.
+
+**For existing companions with `.claude/commands/` files**: When working on an existing companion and modifying its configuration, **propose a migration** from `.claude/commands/` to `.claude/skills/`. The migration for each command:
+
+1. **Determine the skill type:**
+   - If the command orchestrates agents → **Orchestrator skill** (`disable-model-invocation: true`)
+   - If the command is pure interactive dialogue → **Single skill** (may keep `disable-model-invocation: true` or allow Claude invocation depending on use case)
+   - If the command defines standards/references → **Reference skill** (`user-invocable: false`)
+
+2. **Migration steps per command:**
+   - Create `.claude/skills/<name>/SKILL.md` with the command content
+   - Add appropriate frontmatter (`disable-model-invocation`, `argument-hint`, etc.)
+   - Move any referenced templates or supporting files into the skill directory
+   - Verify the `/name` invocation still works
+   - Remove the old `.claude/commands/<name>.md` file
+
+3. **Migration is proposed, not automatic** — the user approves each migration. Batch proposals are fine ("I recommend migrating these 5 commands to skills — here's the plan").
+
+**Note**: `.claude/commands/` files are backward compatible and will continue to work. Migration is recommended for new frontmatter features and consistency, not urgency. No companion will break if migration is deferred.
 
 ---
 

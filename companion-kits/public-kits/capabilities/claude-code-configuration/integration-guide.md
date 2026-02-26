@@ -11,6 +11,7 @@ For lightweight companions or early-stage projects, this is the minimum that mak
 1. **One SessionStart hook** with 3-5 critical rules
 2. **CLAUDE.md under 100 lines** focused on identity and cross-cutting constraints
 3. **One skill** for any multi-step workflow the companion will use repeatedly
+4. **One orchestrator skill** for your most common workflow (if it dispatches to an agent)
 
 This alone eliminates the most common failure modes: instructions lost to compaction, CLAUDE.md attention degradation, and procedural non-compliance.
 
@@ -213,123 +214,263 @@ The checkpoint in step 3 forces the model to demonstrate compliance at generatio
 
 ---
 
-## Layer 3: Skill Definition Template
+## The Orchestration Pattern
 
-Skills live in `.claude/skills/` (or `.claude/commands/` — both work, skills are recommended).
+Before defining individual layers, understand how they compose. The three-layer architecture is the most important design pattern for reliable companion workflows.
+
+### Architecture
+
+```
+USER → ORCHESTRATOR (skill) → AGENT (subagent) ← REFERENCE SKILL (preloaded)
+       validates inputs         does heavy work     defines standards
+       sequences phases         reads many files     tone, format, conventions
+       dispatches to agent      synthesizes content  sole authority on its domain
+       presents output          self-critiques       DRY across agents
+       gates on human approval  returns to caller    injected at startup
+```
+
+### Decision Framework: Where Does This Logic Belong?
+
+| Question | Answer | Put It In |
+|----------|--------|-----------|
+| Does it validate user input or present output? | Yes | Orchestrator |
+| Does it require human approval before proceeding? | Yes | Orchestrator |
+| Does it read many files and synthesize content? | Yes | Agent |
+| Does it generate substantial text (emails, reports)? | Yes | Agent |
+| Does it define standards that multiple agents share? | Yes | Reference skill |
+| Is it primarily dialogue with the user? | Yes | Single skill (no agent needed) |
+
+### Reference Implementation: write-followup → email-writer + client-communication
+
+This walkthrough shows exactly what each layer does and why.
+
+**Orchestrator: `write-followup`** (skill, `disable-model-invocation: true`)
+```
+Phase 1: Validate Inputs
+  → Resolve client name (check clients/ActiveClients/ directory)
+  → Resolve meeting date (find matching activity log)
+  → Verify prerequisites (living profile exists, activity log exists)
+  → OUTPUT: collected values (client, date, paths)
+
+Phase 2: Dispatch to Agent
+  → Read email-writer agent definition
+  → Note: model=opus, skills=client-communication
+  → Build complete prompt with all validated paths
+  → Call Task tool with model=opus
+
+Phase 3: Present Draft
+  → Display email draft from agent
+  → Show agent's quality self-assessment
+  → Present options: Send / Edit / Regenerate / Skip
+
+Phase 4: Human Gate
+  → Wait for user decision
+  → Never send automatically
+```
+
+**Why this is an orchestrator, not a single skill**: It dispatches to an agent that reads 15-35K tokens of context. That synthesis work belongs in an isolated agent context, not in the main conversation.
+
+**Agent: `email-writer`** (model: opus, skills: client-communication)
+```
+Phase 1: Load Context
+  → Read living profile (8 pages, ~20K tokens)
+  → Read current activity log (2-3 pages, ~5K tokens)
+  → Read prior activity logs if thread continuity detected
+
+Phase 2: Strategy
+  → Determine meeting weight (strategic / progress / standup)
+  → Plan thread continuity approach
+  → Identify possibilities to surface
+
+Phase 3: Draft Email
+  → Defer to client-communication skill for structure and tone
+  → Apply content selection, thread weaving, calibration
+
+Phase 4: Self-Critique
+  → Score against strong/weak indicators
+  → Revise if <3 strong indicators present
+  → Return draft + meta-commentary
+```
+
+**Why this is an agent, not part of the orchestrator**: It reads many files, performs heavy synthesis, and benefits from context isolation. The detail stays in the agent; only the draft returns.
+
+**Reference Skill: `client-communication`** (preloaded into email-writer)
+```
+Core Principle: "Lead with What Matters"
+  → Defines what good email structure looks like
+  → Anti-patterns: backward-looking, self-promotion, delivery confirmation
+
+Standards:
+  → Email structure (Key Takeaway → Analysis → Next Steps → Context)
+  → Language to avoid (praising, vague qualifiers, empty compliments)
+  → Language to use (specific facts, measurable outcomes, direct timelines)
+
+Examples:
+  → Good/bad contrasts for thread weaving
+  → Good/bad contrasts for subject lines
+  → Good/bad contrasts for key takeaways
+```
+
+**Why this is a reference skill, not an agent instruction**: Multiple agents may need the same communication standards. Define once, preload everywhere. The agent defers to it; the skill is the sole authority on structure and tone.
+
+---
+
+## Layer 3: Skill Templates
+
+Skills live in `.claude/skills/<name>/SKILL.md` (recommended) or `.claude/commands/` (backward compatible). Use the skills path for new work — it provides directories for supporting files, richer frontmatter, and `context: fork` for isolated execution.
 
 ### Directory Structure
 
 ```
 .claude/
 ├── skills/
-│   ├── process-meeting.md       # Multi-step workflow
-│   ├── write-followup.md        # Generative task (low freedom)
-│   ├── start-day.md             # Daily routine
-│   └── communication-standards/ # Supporting files
-│       └── email-template.md
+│   ├── write-followup/          # Orchestrator skill (dispatches to agent)
+│   │   └── SKILL.md
+│   ├── record/                  # Single skill (interactive dialogue, no agent)
+│   │   └── SKILL.md
+│   ├── client-communication/    # Reference skill (preloaded into agents)
+│   │   └── SKILL.md
+│   └── start-day/               # Orchestrator skill
+│       ├── SKILL.md
+│       └── briefing-template.md # Supporting file (one level deep)
+├── agents/
+│   ├── email-writer.md          # Agent (model: opus, skills: client-communication)
+│   └── meeting-processor.md     # Agent (model: opus, skills: client-communication)
 ```
 
-### Frontmatter Template
+### Orchestrator Skill Template
+
+Copy-paste ready template for a user-invoked workflow that dispatches to an agent.
 
 ```yaml
 ---
-name: process-meeting
+name: [workflow-name]
 description: >
-  Transform a meeting transcript into a structured activity log with
-  insights, action items, and profile update flags. Use after any
-  client meeting.
-model: opus
-allowed_tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - Task
-skills:
-  - communication-standards
+  [When should this activate? Write as if answering that question.
+  A good description improves activation by 20-50%.]
+disable-model-invocation: true
+argument-hint: "[parameter-name]"
 ---
 ```
 
-**Critical field**: `description` is the primary dispatch mechanism. Write it as if answering "When should this skill activate?" A good description improves activation by 20-50%.
-
-### Freedom Level Examples
-
-**High Freedom** (guidance, principles):
-
 ```markdown
-## Approach
+# [Workflow Name]
 
-Consider these factors when analyzing the transcript:
-- What decisions were made vs deferred?
-- What assumptions surfaced?
-- What questions remain open?
+**Purpose**: [One sentence]
+**Usage**: `/[workflow-name] [parameters]`
 
-Organize findings into the most natural structure for this conversation.
-```
+---
 
-**Medium Freedom** (structured workflow):
+## Phase 1: Validate Inputs
 
-```markdown
-## Process
+Step 1: [Resolve primary parameter]
+- [Check: does the resource exist?]
+- [If not found: list options and ask]
 
-1. Read the transcript
-2. Extract decisions, action items, and open questions
-3. Categorize findings by topic area
-4. Write activity log following the template in `templates/activity-log.md`
-5. Flag any items that suggest profile updates
-```
-
-**Low Freedom** (critical procedures — use for generative tasks and multi-phase workflows):
-
-```markdown
-## Process
-
-### Phase 1: Validate Inputs
-
-Step 1: Resolve client name
-- Search `clients/ActiveClients/` for matching directory
-- If not found, list available clients and ask
-
-Step 2: Locate meeting transcript
-- Check Granola for most recent meeting with this client
-- If multiple found, list them and ask which to process
+Step 2: [Resolve secondary parameter]
+- [Default behavior if not provided]
+- [Confirm with user if ambiguous]
 
 Step 3: Verify prerequisites
-- Living profile must exist at `clients/ActiveClients/[Client]/living-profile.md`
+- [Required file/resource 1 must exist]
+- [Required file/resource 2 must exist]
 - If not found, STOP and inform user
 
 **Output collected values before proceeding:**
-```
+
 Phase 1 Complete:
-- Client: [name]
-- Meeting: [date and title]
-- Profile path: [full path]
+- [Parameter 1]: [actual value]
+- [Parameter 2]: [actual value]
+- [Path 1]: [actual value]
+
+## Phase 2: Invoke [Agent Name]
+
+1. Read agent definition at `.claude/agents/[agent-name].md`
+2. Note: model=[model], skills=[skill-list]
+3. Build complete prompt with validated values from Phase 1
+4. Call Task tool with model=[model]
+
+## Phase 3: Present Output
+
+Display agent output to user with:
+- The primary artifact (email draft, report, etc.)
+- Agent's self-assessment (if applicable)
+- Action options (Send / Edit / Regenerate / Skip)
+
+## Phase 4: Human Gate
+
+Wait for user decision. Do NOT act without explicit approval.
+- Send: [action]
+- Edit: [action]
+- Regenerate: re-invoke agent with feedback
+- Skip: acknowledge and exit
 ```
 
-### Phase 2: Extract and Analyze
-[Exact steps continue...]
+**Key properties**: LOW freedom. Exact steps, exact phase structure. Compliance checkpoints between phases. The orchestrator is a procedure, not guidance.
+
+### Reference Skill Template
+
+Copy-paste ready template for an authoritative standards document preloaded into agents.
+
+```yaml
+---
+name: [standard-name]
+description: >
+  [What domain does this skill govern? When should an agent defer to it?]
+---
 ```
-
-### Checklist Pattern for Multi-Phase Workflows
-
-For workflows with 3+ phases, use explicit phase gates:
 
 ```markdown
-## Phases
+# [Standard Name]
 
-- [ ] Phase 1: Validate inputs → output collected values
-- [ ] Phase 2: Extract content → output key findings
-- [ ] Phase 3: Generate artifact → output file path
-- [ ] Phase 4: Verify output → confirm acceptance criteria met
+---
+
+## Core Principle
+
+[One paragraph: The foundational principle that governs all decisions
+in this domain. Every standard below derives from this principle.]
+
+## Standards
+
+### [Standard Area 1]
+- [Specific standard]
+- [Specific standard]
+
+### [Standard Area 2]
+- [Specific standard]
+- [Specific standard]
+
+## Examples
+
+### Good
+> [Concrete example that follows the standards. Quote format.]
+> *Why this works*: [Brief explanation]
+
+### Bad
+> [Concrete example that violates the standards. Quote format.]
+> *Why this fails*: [Brief explanation]
+
+## Anti-Patterns
+
+| Pattern | Why It Fails | Do This Instead |
+|---------|-------------|-----------------|
+| [Common mistake 1] | [Explanation] | [Correct approach] |
+| [Common mistake 2] | [Explanation] | [Correct approach] |
 ```
 
-Each checkbox becomes a compliance checkpoint — the model must explicitly mark it before proceeding.
+**Key properties**: MEDIUM to HIGH freedom. The agent applies these standards with judgment to varied situations. Include concrete good/bad contrasts — they're more effective than abstract rules. These can be longer than orchestrators since they're injected as primary context.
+
+### Freedom Level Reference
+
+| Level | When to Use | Pattern | Typical Skill Type |
+|-------|-------------|---------|-------------------|
+| **Low** | Critical procedures, orchestrators | Exact steps, exact output, compliance checkpoints | Orchestrator skill |
+| **Medium** | Structured standards, workflows | Standards with examples, decision points | Reference skill, single skill |
+| **High** | Guidance, principles | "Consider these factors when..." | Reference skill |
 
 ### Agent Skill Preloading
 
-When a skill is listed in an agent's `skills:` frontmatter, it is injected as full text at agent startup. The invoking code should:
+When a skill is listed in an agent's `skills:` frontmatter, it is injected as full text at agent startup. The invoking orchestrator should:
 
 1. Read the agent definition and note the `skills:` list
 2. Understand that those skills are preloaded — the agent already has them
@@ -342,7 +483,7 @@ When a skill is listed in an agent's `skills:` frontmatter, it is injected as fu
 name: email-writer
 model: opus
 skills:
-  - communication-standards  # ← Preloaded. Agent sees full text.
+  - client-communication  # ← Preloaded. Agent sees full text.
 ---
 ```
 
@@ -351,6 +492,25 @@ skills:
 # CORRECT: Just invoke with the task prompt
 # WRONG: "First, read the communication-standards skill..."
 ```
+
+### Migration Checklist: Commands to Skills
+
+For existing companions with `.claude/commands/` files, use this checklist to migrate:
+
+- [ ] **Inventory**: List all `.claude/commands/*.md` files
+- [ ] **Classify** each command:
+  - Orchestrator (dispatches to agents) → orchestrator skill template
+  - Interactive dialogue (no agent) → single skill
+  - Standards/reference → reference skill template
+- [ ] **Create** `.claude/skills/<name>/SKILL.md` for each command
+- [ ] **Add frontmatter**: `disable-model-invocation: true` for orchestrators, `argument-hint` where applicable
+- [ ] **Move supporting files** (templates, examples) into the skill directory
+- [ ] **Test** `/name` invocation still works
+- [ ] **Remove** old `.claude/commands/<name>.md` files
+- [ ] **Update** any CLAUDE.md references from "commands" to "skills"
+- [ ] **Update** any documentation that references command file paths
+
+**Migration is recommended, not urgent.** Commands still work. Migrate when modifying a companion's configuration — don't create a separate migration project.
 
 ---
 
