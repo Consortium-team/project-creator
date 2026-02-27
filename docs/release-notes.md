@@ -1,6 +1,6 @@
 # Release Notes
 
-## v2.0 — Three-Layer Architecture (February 2026)
+## v2.0 — Three-Layer Architecture (2026-02-26)
 
 **The short version:** Companions built with Project Creator are now smarter about how they use their context window — the right information shows up at the right time instead of everything being loaded at once. This makes companions both more reliable (they follow their rules more consistently) and more efficient (they use fewer tokens doing it).
 
