@@ -2,7 +2,9 @@
 
 ## v2.0 — Three-Layer Architecture (2026-02-26)
 
-**The short version:** Companions built with Project Creator are now smarter about how they use their context window — the right information shows up at the right time instead of everything being loaded at once. This makes companions both more reliable (they follow their rules more consistently) and more efficient (they use fewer tokens doing it).
+Companions built with Project Creator are now smarter about how they use their context window — the right information shows up at the right time instead of everything being loaded at once. This makes companions both more reliable (they follow their rules more consistently) and more efficient (they use fewer tokens doing it).
+
+This release also introduces a **companion kit architecture**. See [Companion Architecture](../README.md#companion-architecture) in the README for details.
 
 **How to get these benefits:**
 
