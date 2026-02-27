@@ -1,19 +1,24 @@
-# /build — Execute Implementation Plan
+---
+name: build
+description: >
+  Use when the user wants to execute an implementation plan and build a companion project. Triggers on
+  requests to build, execute tickets, start implementation, or run the shaping phase. Requires /plan
+  to have been completed first with a tickets.yaml in place.
+disable-model-invocation: true
+argument-hint: "[client/companion]"
+---
+
+# /build -- Execute Implementation Plan
 
 Orchestrate sub-agents to execute tickets and build the project.
 
-## Usage
-
-```
-/build                     # Use current companion
-/build [client/companion]  # Override for specific companion
-```
-
-## Argument: $ARGUMENTS
+**Usage:**
+- `/build` -- Use current companion
+- `/build [client/companion]` -- Override for specific companion
 
 ---
 
-## Instructions
+## Phase 1: Validate -- Resolve Companion and Load Ticket Data
 
 ### Step 1: Determine the Companion
 
@@ -39,12 +44,12 @@ Store the companion path (e.g., `acme-corp/api-service`) and the full directory 
    Run /plan first to create tickets.
    ```
 3. Parse the file and extract:
-   - `project_path` — absolute path to project directory
-   - `spec_file` — relative path to implementation spec
-   - `linear_parent_issue` — parent Linear issue
-   - `tickets` — list of ticket objects
+   - `project_path` -- absolute path to project directory
+   - `spec_file` -- relative path to implementation spec
+   - `linear_parent_issue` -- parent Linear issue
+   - `tickets` -- list of ticket objects
 
-**Validate schema (MANDATORY — do not skip):**
+**Validate schema (MANDATORY -- do not skip):**
 
 Check that tickets.yaml has the required structure. For each ticket, verify these fields exist:
 
@@ -60,8 +65,8 @@ Check that tickets.yaml has the required structure. For each ticket, verify thes
 | `acceptance_criteria` | list with at least one entry |
 
 Also verify top-level fields exist:
-- `project_path` — must be an absolute path that exists on disk
-- `spec_file` — must point to a file that exists
+- `project_path` -- must be an absolute path that exists on disk
+- `spec_file` -- must point to a file that exists
 
 **If validation fails, STOP:**
 ```
@@ -75,16 +80,6 @@ Fix tickets.yaml or re-run /plan to regenerate it.
 
 **Do NOT proceed with a malformed tickets.yaml.** This is the #1 cause of silent build failures.
 
-**Declare collected values:**
-```
-Step 2 Complete. Loaded ticket data:
-- Project path: [project_path value]
-- Spec file: [spec_file value]
-- Linear parent: [linear_parent_issue value]
-- Total tickets: [N]
-- Schema validation: PASSED
-```
-
 **Check for prior progress:**
 
 Check `companions/[client]/[companion]/docs/plans/build-progress.md` for prior progress:
@@ -96,12 +91,31 @@ Check `companions/[client]/[companion]/docs/plans/build-progress.md` for prior p
 
 ---
 
+**Compliance Checkpoint -- Phase 1 Complete:**
+
+```
+Phase 1 Complete. Collected values:
+- Companion: [client/companion]
+- Project path: [project_path value]
+- Spec file: [spec_file value]
+- Linear parent: [linear_parent_issue value]
+- Total tickets: [N]
+- Schema validation: PASSED
+- Previously completed: [N] (if resuming, else 0)
+
+Proceeding to Phase 2.
+```
+
+---
+
+## Phase 2: Dispatch -- Build Execution Order and Execute Tickets
+
 ### Step 3: Build Execution Order
 
 From the tickets (yaml or Linear):
 
-1. **Identify all tickets** — These are the actual work items to execute
-2. **Parse dependencies** — Check `dependencies` field (yaml) or `blockedBy` relationships (Linear)
+1. **Identify all tickets** -- These are the actual work items to execute
+2. **Parse dependencies** -- Check `dependencies` field (yaml) or `blockedBy` relationships (Linear)
 3. **Build execution order** using topological sort:
    - Tickets with no dependencies come first
    - Tickets are ordered so dependencies are completed before dependents
@@ -151,7 +165,20 @@ If `linear_parent_issue` exists in tickets.yaml, update it to "In Progress":
 2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [in_progress_state_id]`
 
 ```
-Build started — [linear_parent_issue] → In Progress
+Build started -- [linear_parent_issue] -> In Progress
+```
+
+---
+
+**Compliance Checkpoint -- Execution Plan Confirmed:**
+
+```
+Execution plan confirmed by user. Values:
+- Tickets in order: [list ticket IDs in execution order]
+- Parallel opportunities: [list any parallel groups]
+- Linear parent status: In Progress
+
+Proceeding to ticket execution.
 ```
 
 ---
@@ -191,7 +218,7 @@ If the ticket has a `linear_id`, update its status to "In Progress":
 3. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [in_progress_state_id]`
 
 ```
-Ticket [#]: [Title] — Linear status → In Progress
+Ticket [#]: [Title] -- Linear status -> In Progress
 ```
 
 #### 5c. Invoke Ticket Executor Agent
@@ -201,8 +228,11 @@ Ticket [#]: [Title] — Linear status → In Progress
 **Step 5c-i: Read the agent definition**
 
 Read `.claude/agents/ticket-executor.md`. Extract from frontmatter:
-- `model:` — the model to use (e.g., opus)
-- `tools:` — available tools (for reference)
+- `model:` -- the model to use (e.g., opus)
+- `tools:` -- available tools (for reference)
+- `skills:` -- reference skills preloaded into the agent (e.g., companion-standards)
+
+The executor agent has `skills: [companion-standards]` in its frontmatter. This means companion-standards is preloaded into the agent automatically. Do NOT include instructions telling the agent to "read" or "load" the companion-standards skill -- it is already injected.
 
 **Step 5c-ii: Build the complete prompt**
 
@@ -219,7 +249,11 @@ You are the ticket-executor agent. Your job is to implement a single ticket.
 ## Ticket: [ACTUAL title from tickets.yaml]
 
 **Description:**
-[ACTUAL description from tickets.yaml — full text, not a reference]
+[ACTUAL description from tickets.yaml -- full text, not a reference]
+
+## Instructions
+
+[ACTUAL description from tickets.yaml -- includes all implementation details]
 
 ## Acceptance Criteria
 
@@ -245,7 +279,7 @@ You are the ticket-executor agent. Your job is to implement a single ticket.
 
 1. Read the implementation spec for architecture context
 2. Read all input files
-3. Implement the changes — create/modify the output files
+3. Implement the changes -- create/modify the output files
 4. Self-check against each acceptance criterion
 5. Return your execution report in the format below
 
@@ -262,8 +296,8 @@ Return EXACTLY this format:
 - [absolute path]
 
 **Acceptance Criteria Status:**
-- [x] [Criterion] — [how it was met]
-- [ ] [Criterion] — [why not met]
+- [x] [Criterion] -- [how it was met]
+- [ ] [Criterion] -- [why not met]
 
 **Issues Encountered:**
 - [any problems]
@@ -293,10 +327,12 @@ Wait for the Task tool to return the executor's report.
 
 Read `.claude/agents/ticket-verifier.md`. Extract `model:` from frontmatter (e.g., sonnet).
 
+The verifier agent also has `skills: [companion-standards]` preloaded. Do NOT include instructions telling the agent to "read" or "load" the skill.
+
 **Step 5d-ii: Build the verifier prompt**
 
 ```
-You are the ticket-verifier agent. You verify that a ticket was correctly implemented. You do NOT make changes — only observe and report.
+You are the ticket-verifier agent. You verify that a ticket was correctly implemented. You do NOT make changes -- only observe and report.
 
 ## Project Directory
 
@@ -331,11 +367,11 @@ You are the ticket-verifier agent. You verify that a ticket was correctly implem
 **Status:** PASS | FAIL | PARTIAL
 
 **Files Verified:**
-- [path] — EXISTS | MISSING — [notes]
+- [path] -- EXISTS | MISSING -- [notes]
 
 **Acceptance Criteria:**
-- [x] [Criterion] — VERIFIED — [evidence]
-- [ ] [Criterion] — FAILED — [what's wrong]
+- [x] [Criterion] -- VERIFIED -- [evidence]
+- [ ] [Criterion] -- FAILED -- [what's wrong]
 
 **Recommendation:** PROCEED | RETRY | ESCALATE
 
@@ -366,8 +402,8 @@ ls -la [project_path]/[output_file_2]
 ```
 
 For EACH output file in the ticket's `output_files` list:
-- If file exists and is non-empty → CONFIRMED
-- If file is missing or empty → FAIL (regardless of what executor/verifier claimed)
+- If file exists and is non-empty -> CONFIRMED
+- If file is missing or empty -> FAIL (regardless of what executor/verifier claimed)
 
 **If any output file is missing:**
 ```
@@ -430,10 +466,28 @@ If the ticket has a `linear_id`, update its status to "Done":
 2. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [done_state_id]`
 
 ```
-Ticket [#]: [Title] — Linear status → Done
+Ticket [#]: [Title] -- Linear status -> Done
 ```
 
 ---
+
+**Compliance Checkpoint -- After each ticket:**
+
+```
+Ticket [#]/[total] checkpoint:
+- Title: [title]
+- Executor status: [COMPLETED/PARTIAL/BLOCKED]
+- Verifier status: [PASS/FAIL/PARTIAL]
+- File existence: [ALL CONFIRMED / N missing]
+- Linear status: Done
+- Cumulative progress: [N]/[total] tickets complete
+
+Proceeding to ticket [#+1].
+```
+
+---
+
+## Phase 3: Present -- Complete Build and Report
 
 ### Step 6: Handle Failures
 
@@ -472,9 +526,9 @@ After max retries, pause and escalate:
 ---
 
 **Options:**
-1. **Provide additional guidance** — I'll pass your instructions to the agent and retry
-2. **Skip this ticket** — Mark as blocked, continue (may break dependent tickets)
-3. **Abort build** — Stop here and revise the plan
+1. **Provide additional guidance** -- I'll pass your instructions to the agent and retry
+2. **Skip this ticket** -- Mark as blocked, continue (may break dependent tickets)
+3. **Abort build** -- Stop here and revise the plan
 
 Choose an option (1/2/3):
 ```
@@ -503,14 +557,14 @@ After all tickets complete (or are skipped):
 - [full path to each modified file]
 
 ### Skipped Tickets (if any)
-- [Ticket title] (#N) — [reason]
+- [Ticket title] (#N) -- [reason]
 
 ---
 
 ## Next Steps
 
 1. **Review the companion** at `companions/[client]/[companion]/`
-2. **Test the implementation** — Run any commands or workflows
+2. **Test the implementation** -- Run any commands or workflows
 3. **Run /checkpoint** to capture session state
 
 The project is ready for review.
@@ -524,17 +578,33 @@ If `linear_parent_issue` exists, update it to "Done":
 2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [done_state_id]`
 
 ```
-Build complete — [linear_parent_issue] → Done
+Build complete -- [linear_parent_issue] -> Done
 ```
 
 ---
+
+**Compliance Checkpoint -- Phase 3 Complete (Build Summary):**
+
+```
+Build complete. Final values:
+- Companion: [client/companion]
+- Tickets completed: [N]/[total]
+- Tickets skipped: [N]
+- Total files created: [N]
+- Total files modified: [N]
+- Linear parent: Done
+```
+
+---
+
+## Phase 4: Gate -- Update Reference Projects
 
 ### Step 8: Update Reference Projects (if persona was used)
 
 After the build completes, check whether this project was created from a persona:
 
-1. **Check for persona** — Read `context/decisions.md` and look for a "Persona:" entry (recorded by `/intake` Step 2b)
-2. **If no persona was used** — Skip this step
+1. **Check for persona** -- Read `context/decisions.md` and look for a "Persona:" entry (recorded by `/intake` Step 2b)
+2. **If no persona was used** -- Skip this step
 3. **If a persona was used:**
 
    a. Determine the organization from the project path (client portion)
@@ -546,10 +616,10 @@ After the build completes, check whether this project was created from a persona
    c. If `reference-projects.md` doesn't exist yet, create it using the template from another persona's reference-projects.md
 
    d. Read the built project's key files to extract reference data:
-      - `CLAUDE.md` — Configuration and voice
-      - `context/decisions.md` — Key decisions with rationale
-      - `context/requirements.md` — What was built and why
-      - `context/constraints.md` — Constraints that shaped the project
+      - `CLAUDE.md` -- Configuration and voice
+      - `context/decisions.md` -- Key decisions with rationale
+      - `context/requirements.md` -- What was built and why
+      - `context/constraints.md` -- Constraints that shaped the project
 
    e. Append a new reference project entry:
 
@@ -569,16 +639,16 @@ After the build completes, check whether this project was created from a persona
 
    ### Key Decisions
 
-   1. [Decision] — [Rationale]
+   1. [Decision] -- [Rationale]
    ...
 
    ### What Works Well
 
-   - [Learnings from the build — what patterns emerged]
+   - [Learnings from the build -- what patterns emerged]
 
    ### Files Worth Studying
 
-   - `[path]` — [Why it's worth reading]
+   - `[path]` -- [Why it's worth reading]
    ...
    ```
 
@@ -596,7 +666,7 @@ After the build completes, check whether this project was created from a persona
    Updated reference-projects.md for the [persona] persona with [companion] as a new reference implementation.
    ```
 
-**Why this matters:** Reference projects are the most valuable part of a persona. Each successful build makes the persona better for the next project. This step captures learnings while context is fresh — you'll never have a better view of what worked than right after building it.
+**Why this matters:** Reference projects are the most valuable part of a persona. Each successful build makes the persona better for the next project. This step captures learnings while context is fresh -- you'll never have a better view of what worked than right after building it.
 
 ---
 
@@ -606,7 +676,7 @@ After the build completes, check whether this project was created from a persona
 
 **The #1 failure mode is reasoning about what agents would do instead of dispatching them.**
 
-When this command says "invoke the executor agent", it means:
+When this skill says "invoke the executor agent", it means:
 1. Read the agent definition file
 2. Build a complete prompt with actual values
 3. Call the Task tool with the correct model
@@ -614,12 +684,16 @@ When this command says "invoke the executor agent", it means:
 
 It does NOT mean: imagine what the agent would produce and write a plausible report.
 
+### Agent Skills Are Preloaded
+
+Both `ticket-executor` and `ticket-verifier` agents have `skills: [companion-standards]` in their frontmatter. This means companion-standards is injected into the agent's context at startup. Do NOT tell agents to "read" or "load" companion-standards -- it is already there. Instructing them to read it wastes tokens and creates confusion.
+
 ### Three-Layer Verification
 
 Never trust a single source of truth:
-1. **Executor claims** it created files → but maybe it simulated
-2. **Verifier confirms** files meet criteria → but maybe it also simulated
-3. **Orchestrator checks** files exist on disk → this is the hard truth
+1. **Executor claims** it created files -> but maybe it simulated
+2. **Verifier confirms** files meet criteria -> but maybe it also simulated
+3. **Orchestrator checks** files exist on disk -> this is the hard truth
 
 All three must pass. The orchestrator file check (Step 5e) is the final gate.
 
@@ -659,14 +733,14 @@ Execute tickets one at a time. This:
 - Makes debugging easier
 - Prevents file conflicts
 
-Parallel execution is a future optimization — don't attempt it now.
+Parallel execution is a future optimization -- don't attempt it now.
 
 ### Verify Before Proceeding
 
 Never assume a ticket completed successfully:
-- Executor report says COMPLETED → verify with verifier
-- Verifier report says PASS → verify files exist on disk
-- Files exist on disk → NOW mark complete
+- Executor report says COMPLETED -> verify with verifier
+- Verifier report says PASS -> verify files exist on disk
+- Files exist on disk -> NOW mark complete
 
 ---
 
@@ -675,12 +749,12 @@ Never assume a ticket completed successfully:
 | Situation | Response |
 |-----------|----------|
 | No tickets.yaml | "Run /plan first" |
-| tickets.yaml schema invalid | "Schema validation failed — list problems, stop" |
-| project_path doesn't exist | "Project directory not found — check path" |
+| tickets.yaml schema invalid | "Schema validation failed -- list problems, stop" |
+| project_path doesn't exist | "Project directory not found -- check path" |
 | Executor timeout | Retry once, then escalate |
 | Verifier returns RETRY | Retry with feedback, max 2 times |
 | Verifier returns ESCALATE | Present issues to user |
-| Orchestrator file check fails | Retry — executor simulated instead of executing |
+| Orchestrator file check fails | Retry -- executor simulated instead of executing |
 | "Completed" tickets missing files | Reset to pending, re-execute |
 | User aborts | Summarize progress, suggest next steps |
 | Resuming partial build | Verify completed ticket files exist, then resume from first pending |

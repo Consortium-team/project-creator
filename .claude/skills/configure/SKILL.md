@@ -1,20 +1,20 @@
+---
+name: configure
+description: >
+  Use for first-time Project Creator setup or to update configuration. Sets up organization,
+  directories, permissions, and validates environment. Run after cloning the repo.
+disable-model-invocation: true
+---
+
 # /configure — Set Up Project Creator
 
 First-run setup and ongoing configuration for your Project Creator instance.
 
-## Usage
-
-```
-/configure                    # Run setup or update configuration
-```
-
-## Argument: $ARGUMENTS
+**Usage:** `/configure`
 
 ---
 
-## Instructions
-
-### Step 1: Check Current State
+## Step 1: Check Current State
 
 Read existing configuration to determine if this is a first run or a reconfiguration:
 
@@ -44,7 +44,7 @@ Read existing configuration to determine if this is a first run or a reconfigura
 
 ---
 
-### Step 2: Ask Who You Are
+## Step 2: Ask Who You Are
 
 ```
 Welcome to Project Creator!
@@ -60,7 +60,7 @@ Wait for user response. Store as `org_name`.
 
 ---
 
-### Step 3: Create Directory Structure
+## Step 3: Create Directory Structure
 
 Create all necessary directories:
 
@@ -79,7 +79,7 @@ mkdir -p tracking
 
 ---
 
-### Step 4: Create Permissions File
+## Step 4: Create Permissions File
 
 Create `tracking/permissions.yaml`:
 
@@ -106,7 +106,7 @@ always_accessible_private_kits:
 
 ---
 
-### Step 5: Create Current Companion Tracking File
+## Step 5: Create Current Companion Tracking File
 
 If `tracking/current-companion.md` doesn't exist, create it:
 
@@ -116,7 +116,7 @@ No companion currently set
 
 ---
 
-### Step 6: Create Projects Log
+## Step 6: Create Projects Log
 
 If `tracking/projects-log.md` doesn't exist, create it with the standard template:
 
@@ -154,7 +154,7 @@ Recent sessions are logged here by `/checkpoint`.
 
 ---
 
-### Step 7: Check for Legacy Migration
+## Step 7: Check for Legacy Migration
 
 Check if a `projects/` directory exists with content:
 
@@ -202,8 +202,8 @@ For each client directory in `projects/`:
 
 3. Report each migration:
    ```
-   Migrated: [client]/[project-1] → companions/[client]/[project-1]
-   Migrated: [client]/[project-2] → companions/[client]/[project-2]
+   Migrated: [client]/[project-1] -> companions/[client]/[project-1]
+   Migrated: [client]/[project-2] -> companions/[client]/[project-2]
    Created kit: companion-kits/private-kits/[client]-companion-kit/
    ```
 
@@ -213,7 +213,7 @@ For each client directory in `projects/`:
 
 ---
 
-### Step 8: Verify .gitignore
+## Step 8: Verify .gitignore
 
 Check that `.gitignore` includes the necessary entries:
 
@@ -232,7 +232,7 @@ Note: Make sure your .gitignore includes:
 
 ---
 
-### Step 9: Confirm Setup
+## Step 9: Confirm Setup
 
 ```
 ## Configuration Complete
@@ -287,12 +287,3 @@ Add the selected kit to `always_accessible_private_kits` in `tracking/permission
 ### Remove a kit from permissions
 
 Show the current list and let user remove one. Update `tracking/permissions.yaml`.
-
----
-
-## Design Rationale
-
-- **First run creates everything** — New users shouldn't have to manually create gitignored directories
-- **Migration is opt-in** — Users may want to keep projects/ intact while they test the new structure
-- **Permissions default to own org** — The most common case is wanting your own kit always available
-- **Reconfigurable** — Permissions can be updated anytime without re-running full setup

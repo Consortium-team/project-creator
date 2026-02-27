@@ -1,19 +1,24 @@
-# /plan — Consolidate Requirements into Implementation Plan
+---
+name: plan
+description: >
+  Use when the user wants to consolidate captured requirements into an implementation plan with tickets.
+  Triggers on requests to plan, create tickets, write a spec, move to cultivation phase, or prepare
+  for building. Requires seeding phase to be substantially complete.
+disable-model-invocation: true
+argument-hint: "[client/companion]"
+---
+
+# /plan -- Consolidate Requirements into Implementation Plan
 
 Transform captured requirements into a structured specification and actionable Linear tickets.
 
-## Usage
-
-```
-/plan                     # Use current companion
-/plan [client/companion]  # Override for specific companion
-```
-
-## Argument: $ARGUMENTS
+**Usage:**
+- `/plan` -- Use current companion
+- `/plan [client/companion]` -- Override for specific companion
 
 ---
 
-## Instructions
+## Phase 1: Validate -- Gather and Assess Context
 
 ### Step 1: Determine the Companion
 
@@ -24,7 +29,7 @@ Transform captured requirements into a structured specification and actionable L
    No companion set. Use /companion to set or create one first.
    ```
 
-**Resolve the absolute companion path from the filesystem — do NOT guess or construct it:**
+**Resolve the absolute companion path from the filesystem -- do NOT guess or construct it:**
 
 ```bash
 realpath companions/[client]/[companion]/
@@ -44,20 +49,20 @@ Read everything available for the companion:
 - `context/decisions.md`
 
 **Additional context (if present):**
-- `context/questions.md` — Open questions
-- `CLAUDE.md` — Existing companion configuration
-- `README.md` — Human documentation
-- `HANDOFF.md` — Previous session notes
-- `docs/` — Any additional documentation
+- `context/questions.md` -- Open questions
+- `CLAUDE.md` -- Existing companion configuration
+- `README.md` -- Human documentation
+- `HANDOFF.md` -- Previous session notes
+- `docs/` -- Any additional documentation
 
 **Report what was found:**
 ```
 ## Context Gathered for [companion]
 
 **Found:**
-- requirements.md — [summary of what's there]
-- constraints.md — [summary]
-- decisions.md — [N decisions documented]
+- requirements.md -- [summary of what's there]
+- constraints.md -- [summary]
+- decisions.md -- [N decisions documented]
 
 **Also found:**
 - [list any additional files]
@@ -97,6 +102,25 @@ Run `/gaps` for a full assessment, or continue with `/intake` to fill these gaps
 
 ---
 
+**Compliance Checkpoint -- Phase 1 Complete:**
+
+```
+Phase 1 Complete. Collected values:
+- Companion: [client/companion]
+- Project path: [project_path value]
+- Context files found: [list]
+- Context files missing: [list or "none"]
+- Readiness assessment: READY / NOT READY
+- Purpose: [one-sentence summary]
+- Core functionality: [brief list]
+
+Proceeding to Phase 2.
+```
+
+---
+
+## Phase 2: Dispatch -- Clarify, Specify, and Break Down
+
 ### Step 4: Ask Clarifying Questions
 
 Before creating the specification, ask questions about anything unclear or ambiguous:
@@ -114,7 +138,7 @@ Before creating the specification, ask questions about anything unclear or ambig
 - External tools, APIs, or services needed?
 - Skills or MCPs required?
 
-Ask questions **one at a time** until you have enough clarity to write a solid spec. Don't proceed with ambiguity — resolve it first.
+Ask questions **one at a time** until you have enough clarity to write a solid spec. Don't proceed with ambiguity -- resolve it first.
 
 ```
 Before I create the implementation spec, I have a few questions:
@@ -150,7 +174,7 @@ status: planned
 # Implementation Spec: [Project Name]
 
 **Created:** [Date]
-**Status:** Draft — Awaiting Review
+**Status:** Draft -- Awaiting Review
 
 ---
 
@@ -175,11 +199,11 @@ status: planned
 ### Structure
 
 **IMPORTANT: Follow Claude Code project conventions:**
-- `.claude/commands/` — Slash commands (e.g., /start-day, /process-meeting)
-- `.claude/agents/` — Agent definitions
-- `.claude/skills/` — Reusable skills
-- `.claude/shortcuts/` — Scheduled shortcuts
-- `templates/`, `context/`, `docs/` — Project-specific content (not in .claude/)
+- `.claude/skills/` -- Workflow skills (e.g., /start-day, /process-meeting)
+- `.claude/agents/` -- Agent definitions
+- `.claude/rules/` -- Path-scoped conventions
+- `.claude/shortcuts/` -- Scheduled shortcuts
+- `templates/`, `context/`, `docs/` -- Project-specific content (not in .claude/)
 
 [Directory structure, key files, overall organization]
 
@@ -198,13 +222,13 @@ status: planned
 ## Dependencies
 
 ### External Tools
-- [Tool 1] — [what it's used for]
+- [Tool 1] -- [what it's used for]
 
 ### Skills / MCPs
-- [Skill 1] — [purpose]
+- [Skill 1] -- [purpose]
 
 ### Integrations
-- [Integration 1] — [details]
+- [Integration 1] -- [details]
 
 ---
 
@@ -264,15 +288,17 @@ status: planned
 Create tickets for each discrete piece of work.
 
 **Ticket Requirements:**
-1. **Single session scope** — Each ticket must be completable in one context session
-2. **Size limit** — Only S (small) or M (medium) allowed. No L tickets.
-3. **Self-contained** — A fresh agent should be able to execute it with just the ticket + project context
-4. **Clear outputs** — Every ticket specifies what files to create/modify
+1. **Single session scope** -- Each ticket must be completable in one context session
+2. **Size limit** -- Only S (small) or M (medium) allowed. No L tickets.
+3. **Self-contained** -- A fresh agent should be able to execute it with just the ticket + project context
+4. **Clear outputs** -- Every ticket specifies what files to create/modify
+
+**Ticket schema:** Follow the ticket schema defined in the companion-standards reference skill. Field names are snake_case and non-negotiable. Refer to companion-standards for the complete field reference and Good/Bad examples.
 
 **Ticket Template:**
 
 ```markdown
-### [Ticket Number]: [Imperative title — "Build X", "Create Y"]
+### [Ticket Number]: [Imperative title -- "Build X", "Create Y"]
 
 **Size:** S | M
 **Blocked by:** [List ticket numbers, or "None"]
@@ -312,16 +338,18 @@ Create tickets for each discrete piece of work.
 
 ### Step 7: Validate All Tickets
 
-Before writing to Linear, verify each ticket:
+Before writing to Linear, verify each ticket against the companion-standards ticket schema:
 
 **Checklist for each ticket:**
 - [ ] Title is imperative ("Build X", not "Building X" or "X")
-- [ ] Description has enough context
+- [ ] Description has enough context for a fresh agent
 - [ ] Acceptance criteria are specific and checkable
 - [ ] Input files exist or will be created by a blocking ticket
 - [ ] Output files are clearly specified
 - [ ] Size is S or M (not L)
 - [ ] Dependencies are correctly mapped
+- [ ] All required fields from companion-standards ticket schema are present
+- [ ] Field names are snake_case (not camelCase)
 
 **Flag problems:**
 ```
@@ -335,6 +363,24 @@ Would you like me to revise these tickets before creating them in Linear?
 ```
 
 ---
+
+**Compliance Checkpoint -- Phase 2 Complete:**
+
+```
+Phase 2 Complete. Collected values:
+- Implementation spec: [relative path to spec file]
+- Total tickets: [N]
+- S-sized tickets: [N]
+- M-sized tickets: [N]
+- Ticket validation: PASSED / [N issues found]
+- Dependency chain: [brief description of execution order]
+
+Proceeding to Phase 3.
+```
+
+---
+
+## Phase 3: Present -- Review Plan and Gate on Approval
 
 ### Step 8: Present Plan for Review
 
@@ -386,6 +432,8 @@ Questions:
 
 ---
 
+## Phase 4: Gate -- Write to Linear and Finalize
+
 ### Step 9: Write to Linear
 
 After user approves:
@@ -413,12 +461,12 @@ After user approves:
 
    Write to `companions/[client]/[companion]/docs/plans/tickets.yaml`
 
-   **CRITICAL: Follow this schema EXACTLY. Do not rename fields, change casing, or omit fields. The `/build` command parses this file and will fail if the schema doesn't match.**
+   **CRITICAL: Follow the ticket schema from companion-standards EXACTLY. Do not rename fields, change casing, or omit fields. The `/build` skill parses this file and will fail if the schema doesn't match.**
 
    ```yaml
    # Ticket manifest for [companion]
    # Generated by /plan on YYYY-MM-DD
-   # SCHEMA VERSION: 1.0 — Do not modify field names
+   # SCHEMA VERSION: 1.0 -- Do not modify field names
 
    project_name: "[human-readable project name]"
    project_path: "/absolute/path/to/companions/[client]/[companion]"
@@ -440,8 +488,8 @@ After user approves:
        output_files:
          - "relative/path/to/output.md"
        acceptance_criteria:
-         - "First criterion — specific and verifiable"
-         - "Second criterion — specific and verifiable"
+         - "First criterion -- specific and verifiable"
+         - "Second criterion -- specific and verifiable"
 
      - id: 2
        linear_id: "CON-XX"
@@ -458,25 +506,6 @@ After user approves:
        acceptance_criteria:
          - "Criterion"
    ```
-
-   **Schema field reference (non-negotiable):**
-
-   | Field | Type | Required | Notes |
-   |-------|------|----------|-------|
-   | `project_name` | string | yes | Top-level metadata |
-   | `project_path` | string | yes | Absolute path to companion directory |
-   | `spec_file` | string | yes | Relative path to implementation spec |
-   | `linear_parent_issue` | string | yes | Parent Linear issue identifier |
-   | `tickets[].id` | integer | yes | Sequential: 1, 2, 3... (NOT Linear IDs) |
-   | `tickets[].linear_id` | string | yes | Linear identifier: "CON-XX" |
-   | `tickets[].title` | string | yes | Imperative title |
-   | `tickets[].size` | string | yes | "S" or "M" |
-   | `tickets[].status` | string | yes | "pending" at creation |
-   | `tickets[].blocked_by` | list[int] | yes | List of ticket `id`s, or empty `[]` |
-   | `tickets[].description` | string | yes | Full description for agent execution |
-   | `tickets[].input_files` | list[string] | yes | Relative paths from project root |
-   | `tickets[].output_files` | list[string] | yes | Relative paths from project root |
-   | `tickets[].acceptance_criteria` | list[string] | yes | Specific, verifiable criteria |
 
 6. **Create build progress tracking file:**
 
@@ -500,6 +529,21 @@ After user approves:
 
    (Updated by /build as tickets complete)
    ```
+
+---
+
+**Compliance Checkpoint -- Phase 4 Complete:**
+
+```
+Phase 4 Complete. Collected values:
+- Linear parent issue: [CON-XX]
+- Linear child issues: [list CON-XX IDs]
+- tickets.yaml written: [path]
+- build-progress.md written: [path]
+- Schema compliance: VERIFIED
+
+Proceeding to final report.
+```
 
 ---
 
@@ -531,9 +575,9 @@ After tickets are created:
 - After ticket [N] completes, tickets [X, Y] can run in parallel
 
 **Local files created:**
-- `docs/plans/YYYY-MM-DD-implementation-spec.md` — Full specification
-- `docs/plans/tickets.yaml` — Structured ticket data for /build
-- `docs/plans/build-progress.md` — Progress tracking
+- `docs/plans/YYYY-MM-DD-implementation-spec.md` -- Full specification
+- `docs/plans/tickets.yaml` -- Structured ticket data for /build
+- `docs/plans/build-progress.md` -- Progress tracking
 
 ---
 
@@ -581,5 +625,8 @@ Each ticket must be executable by a fresh agent with no prior context. Include:
 - Clear outputs to produce
 - Verifiable acceptance criteria
 
+### Ticket Schema Lives in companion-standards
+The authoritative ticket schema (field names, types, required fields, examples) is defined in the companion-standards reference skill. This skill references companion-standards rather than duplicating the schema. When in doubt about field names or structure, companion-standards is the source of truth.
+
 ### Plans Evolve
-The initial plan isn't final. It will change during implementation. That's okay — the goal is a good starting point, not a perfect prediction.
+The initial plan isn't final. It will change during implementation. That's okay -- the goal is a good starting point, not a perfect prediction.

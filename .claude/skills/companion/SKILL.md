@@ -1,26 +1,31 @@
+---
+name: companion
+description: >
+  Use when managing companion context — showing current companion, switching companions,
+  or creating new ones. Triggers on any mention of setting, switching, creating, or listing companions.
+disable-model-invocation: true
+argument-hint: "[client/companion] or [new client/companion]"
+---
+
 # /companion — Manage Companion Context
 
 Set, show, or create the current companion context.
 
-## Usage
-
-```
-/companion                              # Show current + list all
-/companion [client/companion]           # Set current (must exist)
-/companion new [client/companion]       # Create new and set as current
-```
-
-## Argument: $ARGUMENTS
+**Usage:** `/companion`, `/companion [client/companion]`, `/companion new [client/companion]`
 
 ---
 
-## Instructions
+## Parse Arguments
 
-Parse the arguments to determine the mode:
+Parse `$ARGUMENTS` to determine the mode:
 
-### Mode 1: No Arguments (Show)
+- Empty → Mode 1 (Show)
+- Contains path like `client/companion` without "new" → Mode 2 (Set)
+- Starts with `new ` → Mode 3 (Create)
 
-If `$ARGUMENTS` is empty:
+---
+
+## Mode 1: No Arguments (Show)
 
 1. **Read current companion** from `tracking/current-companion.md`
    - If file contains a companion path (like `acme-corp/api-service`), that's the current companion
@@ -37,7 +42,7 @@ If `$ARGUMENTS` is empty:
 
    Available companions:
      [client-a]/
-       * [companion-1]    ← current
+       * [companion-1]    <- current
        [companion-2]
      [client-b]/
        [companion-3]
@@ -53,9 +58,7 @@ If `$ARGUMENTS` is empty:
 
 ---
 
-### Mode 2: Set Current (client/companion argument, no "new")
-
-If `$ARGUMENTS` contains a path like `client/companion` (no "new" prefix):
+## Mode 2: Set Current (client/companion argument, no "new")
 
 1. **Verify the companion exists** at `companions/[client]/[companion]/`
    - If it doesn't exist, report the error and list available companions
@@ -74,9 +77,7 @@ If `$ARGUMENTS` contains a path like `client/companion` (no "new" prefix):
 
 ---
 
-### Mode 3: Create New (starts with "new")
-
-If `$ARGUMENTS` starts with `new `:
+## Mode 3: Create New (starts with "new")
 
 1. **Parse the companion path** from the rest of the arguments
    - Expected format: `new client/companion`

@@ -1,3 +1,13 @@
+---
+name: read-book
+description: >
+  Use when the user wants to read and annotate a book via Kindle Cloud Reader. Supports two modes:
+  project mode (companion-specific notes in reference/) and library mode (companion-neutral notes
+  in org library). Reads in batches of 10 page-flips with resilient note-writing after each flip.
+disable-model-invocation: true
+argument-hint: "[kindle-url] or [--library org kindle-url]"
+---
+
 # /read-book — Read and Annotate a Book via Kindle Cloud Reader
 
 Read a book through the browser, taking structured notes in batches of 10 page-flips. Supports two modes:
@@ -5,14 +15,11 @@ Read a book through the browser, taking structured notes in batches of 10 page-f
 1. **Project mode** (default) — Produces project-specific applicability notes stored in the companion's `reference/` directory
 2. **Library mode** (`--library [org]`) — Produces comprehensive, companion-neutral notes stored in the organization's library at `companion-kits/private-kits/[org]-companion-kit/library/`
 
-## Usage
-
-```
-/read-book [kindle-url]                              # Read for current companion (project mode)
-/read-book [kindle-url] [client/companion]           # Override for specific companion
-/read-book --library [org] [kindle-url]              # Read to org library (library mode)
-/read-book --library [org] [subject] [kindle-url]    # Library mode with subject category
-```
+**Usage:**
+- `/read-book [kindle-url]` — Read for current companion (project mode)
+- `/read-book [kindle-url] [client/companion]` — Override for specific companion
+- `/read-book --library [org] [kindle-url]` — Read to org library (library mode)
+- `/read-book --library [org] [subject] [kindle-url]` — Library mode with subject category
 
 **Examples:**
 ```
@@ -21,13 +28,9 @@ Read a book through the browser, taking structured notes in batches of 10 page-f
 /read-book --library consortium.team creative-writing https://read.amazon.com/?asin=B00RLQXBYS
 ```
 
-## Argument: $ARGUMENTS
-
 ---
 
-## Instructions
-
-### Step 0: Determine Reading Mode
+## Step 0: Determine Reading Mode
 
 Parse `$ARGUMENTS` for the `--library` flag:
 
@@ -42,7 +45,9 @@ Parse `$ARGUMENTS` for the `--library` flag:
 - **Project mode** — Notes are companion-specific, stored in the project's `reference/` directory
 - Proceed to Step 1
 
-### Step 1: Determine the Companion (Project Mode Only)
+---
+
+## Step 1: Determine the Companion (Project Mode Only)
 
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
@@ -56,14 +61,14 @@ Store the companion path and full directory path (`companions/[client]/[companio
 
 ---
 
-### Step 2: Extract the URL and Determine Book Identity
+## Step 2: Extract the URL and Determine Book Identity
 
 1. Parse the Kindle URL from `$ARGUMENTS` (the `asin=XXXXXXXXXX` parameter identifies the book)
 2. Extract the ASIN from the URL
 
 ---
 
-### Step 3: Check for Existing Reference File
+## Step 3: Check for Existing Reference File
 
 **In project mode:**
 1. Search `[companion]/reference/` for any file containing the ASIN or that matches the book
@@ -82,7 +87,35 @@ Store the companion path and full directory path (`companions/[client]/[companio
 
 ---
 
-### Step 4: Create the Reference File (New Read Only)
+### Compliance Checkpoint 1
+
+**For new reads, confirm book identity and destination before proceeding:**
+```
+New read detected.
+
+Book ASIN: [ASIN]
+Mode: [Project / Library]
+Destination: [path where notes will be stored]
+
+Proceeding to connect to the browser and identify the book. Ready?
+```
+
+**For resumes, confirm the pickup point:**
+```
+Resuming read.
+
+Book: [title if known]
+Paused at: page [X] of [Y] ([Z]%)
+Chapter: [chapter name]
+
+Ready to continue?
+```
+
+**STOP and wait for user confirmation.**
+
+---
+
+## Step 4: Create the Reference File (New Read Only)
 
 1. Navigate to the Kindle URL (Step 5 handles browser connection)
 2. Once on the book, open the Table of Contents to get the book's structure
@@ -135,7 +168,7 @@ status: "in-progress"
 
 ---
 
-### Step 5: Connect to the Browser
+## Step 5: Connect to the Browser
 
 **Try Claude in Chrome extension first:**
 
@@ -166,7 +199,7 @@ status: "in-progress"
 
 ---
 
-### Step 6: Read in Batches of 10 Flips
+## Step 6: Read in Batches of 10 Flips
 
 **This is the core reading loop. Repeat this step until the book is complete.**
 
@@ -176,7 +209,7 @@ status: "in-progress"
 2. **Write notes to the reference file** — Append notes for the pages just read, following the note format (see Step 7). If a chapter has ended on this spread, write the **Chapter Synthesis** before continuing.
 3. **Flip to the next spread** — Click the right-side arrow (typically around coordinate [1425, 405] but verify with screenshot)
 
-Repeat steps 1–3 until you've done 10 flips.
+Repeat steps 1-3 until you've done 10 flips.
 
 **Why write after every flip, not after the batch:** Context compaction can hit at any time. If notes are written after every 2 pages, a compaction only loses the current spread. If notes are batched to the end, a compaction on flip 8 loses everything. This is the critical resilience mechanism.
 
@@ -197,16 +230,20 @@ Repeat steps 1–3 until you've done 10 flips.
    ```
 6. **STOP and wait for the user to say "next"** — Do not continue reading without user confirmation
 
+### Compliance Checkpoint 2
+
+**After every batch of 10 flips, this is a mandatory pause point.** Do not proceed to the next batch until the user explicitly says "next" or equivalent. This gives the user pacing control and a natural breakpoint.
+
 ---
 
-### Step 7: Note Format
+## Step 7: Note Format (Project Mode)
 
 Follow this structure for each batch of notes appended to the reference file:
 
 ```markdown
-## Chapter [N] | [Chapter Title] (pp. [start]–[end])
+## Chapter [N] | [Chapter Title] (pp. [start]-[end])
 
-### Pages [X]–[Y]
+### Pages [X]-[Y]
 
 **Key concepts:**
 
@@ -218,7 +255,7 @@ Follow this structure for each batch of notes appended to the reference file:
 - [How this concept applies to the specific project]
 - [Specific editorial/design/build implications]
 
-### Pages [X]–[Y]
+### Pages [X]-[Y]
 
 [Continue for each spread in the batch...]
 
@@ -244,14 +281,14 @@ Follow this structure for each batch of notes appended to the reference file:
 
 ---
 
-### Step 7b: Library Note Format (Library Mode Only)
+## Step 7b: Library Note Format (Library Mode Only)
 
 In library mode, notes are **comprehensive and companion-neutral**. Instead of "Applicable to [project]" sections, use broader tagging.
 
 ```markdown
-## Chapter [N] | [Chapter Title] (pp. [start]–[end])
+## Chapter [N] | [Chapter Title] (pp. [start]-[end])
 
-### Pages [X]–[Y]
+### Pages [X]-[Y]
 
 **Key concepts:**
 
@@ -261,7 +298,7 @@ In library mode, notes are **comprehensive and companion-neutral**. Instead of "
 
 **Subject tags:** [craft-technique, character-development, pacing, etc.]
 
-### Pages [X]–[Y]
+### Pages [X]-[Y]
 
 [Continue for each spread in the batch...]
 
@@ -291,7 +328,7 @@ In library mode, notes are **comprehensive and companion-neutral**. Instead of "
 
 ---
 
-### Step 8: Update Reading Position
+## Step 8: Update Reading Position
 
 After each batch of notes, update the footer of the reference file:
 
@@ -303,7 +340,7 @@ This marker is how the command knows where to resume on the next invocation.
 
 ---
 
-### Step 9: Book Completion
+## Step 9: Book Completion
 
 When you reach the end of the book:
 
@@ -342,7 +379,7 @@ When you reach the end of the book:
 - The user will start a new Cowork session. On resume, they'll invoke `/read-book` again with the same URL. Step 3 will find the existing reference file and pick up where it left off.
 
 **Chrome extension disconnects mid-read:**
-- Ask the user to reconnect (click extension icon → Connect). Then take a screenshot to verify the reader is still on the right page.
+- Ask the user to reconnect (click extension icon then Connect). Then take a screenshot to verify the reader is still on the right page.
 
 ---
 

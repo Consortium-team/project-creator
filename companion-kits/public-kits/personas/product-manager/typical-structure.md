@@ -69,7 +69,7 @@ These files must exist for the core commands to work:
 | `product/user-segments.md` | User segments | Foundation ticket, populated via `/explore` |
 | `product/feature-concepts.md` | Feature ideas | Foundation ticket, populated via `/explore` |
 | `product/competitive-landscape.md` | Competition | Foundation ticket, populated via `/research` |
-| `.claude/commands/*.md` | All 10 commands | Command tickets |
+| `.claude/skills/*/SKILL.md` | All skills | Skill tickets |
 
 ---
 

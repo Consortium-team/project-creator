@@ -1,23 +1,26 @@
+---
+name: process
+description: >
+  Use when the user has external inputs to analyze — transcripts, documents, notes, or pasted text.
+  Extracts structured information (requirements, constraints, decisions, questions) and updates
+  companion context files.
+disable-model-invocation: true
+argument-hint: "[client/companion]"
+---
+
 # /process — Handle External Inputs
 
 Extract structured information from transcripts, documents, or notes.
 
-## Usage
-
-```
-/process                     # Prompts for input, uses current companion
-/process [client/companion]    # Override companion, then prompts for input
-```
+**Usage:**
+- `/process` — Prompts for input, uses current companion
+- `/process [client/companion]` — Override companion, then prompts for input
 
 After invoking, paste text or provide a file path when prompted.
 
-## Argument: $ARGUMENTS
-
 ---
 
-## Instructions
-
-### Step 1: Determine the Companion
+## Step 1: Determine the Companion
 
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
@@ -28,7 +31,7 @@ After invoking, paste text or provide a file path when prompted.
 
 ---
 
-### Step 2: Get the Input
+## Step 2: Get the Input
 
 If no content was provided with the command:
 
@@ -47,7 +50,7 @@ What would you like me to process?
 
 ---
 
-### Step 3: Analyze the Input
+## Step 3: Analyze the Input
 
 Read through the input and extract:
 
@@ -81,7 +84,7 @@ Read through the input and extract:
 
 ---
 
-### Step 4: Present Extraction
+## Step 4: Present Extraction
 
 Show what was extracted before writing:
 
@@ -118,9 +121,19 @@ Show what was extracted before writing:
 Does this capture what's important? Anything I missed or misinterpreted?
 ```
 
+### Compliance Checkpoint 1
+
+**STOP and wait for user confirmation before writing to context files.**
+
+The user may want to:
+- Confirm the extraction is accurate
+- Correct misinterpretations
+- Add items that were missed
+- Remove items that aren't relevant
+
 ---
 
-### Step 5: Clarify Questions (Optional)
+## Step 5: Clarify Questions (Optional)
 
 If there are questions or ambiguities:
 
@@ -138,7 +151,7 @@ If user wants to clarify, ask **one question at a time** and capture the answers
 
 ---
 
-### Step 6: Update Context Files
+## Step 6: Update Context Files
 
 After confirmation, update the companion's context files:
 
@@ -172,7 +185,25 @@ After confirmation, update the companion's context files:
 
 ---
 
-### Step 7: Summarize
+### Compliance Checkpoint 2
+
+**After writing context files, confirm with the user:**
+```
+Context files updated. Here's what was written:
+
+- context/requirements.md — [N] requirements added
+- context/constraints.md — [N] constraints added
+- context/decisions.md — [N] decisions added
+- context/questions.md — [N] open questions added
+
+Does this look correct?
+```
+
+**STOP and wait for user confirmation.**
+
+---
+
+## Step 7: Summarize
 
 ```
 ## Processed: [brief description of input]

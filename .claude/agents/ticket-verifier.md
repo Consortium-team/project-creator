@@ -8,6 +8,8 @@ tools:
   - Read
   - Glob
   - Grep
+skills:
+  - companion-standards
 ---
 
 # Ticket Verifier Agent

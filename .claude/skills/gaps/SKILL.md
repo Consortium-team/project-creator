@@ -1,21 +1,21 @@
+---
+name: gaps
+description: >
+  Use when checking how complete a companion's context is, what's missing, and what to capture next.
+  Assesses seeding readiness and prioritizes remaining gaps.
+disable-model-invocation: true
+argument-hint: "[client/companion]"
+---
+
 # /gaps — Assessment Checkpoint
 
 Assess what's captured vs. what's needed for a complete project definition.
 
-## Usage
-
-```
-/gaps                     # Use current companion
-/gaps [client/companion]    # Override for specific companion
-```
-
-## Argument: $ARGUMENTS
+**Usage:** `/gaps` or `/gaps [client/companion]`
 
 ---
 
-## Instructions
-
-### Step 1: Determine the Project
+## Step 1: Determine the Project
 
 1. If `$ARGUMENTS` contains a project path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current project
@@ -26,7 +26,7 @@ Assess what's captured vs. what's needed for a complete project definition.
 
 ---
 
-### Step 2: Read All Context
+## Step 2: Read All Context
 
 Read everything in the project's `context/` directory:
 - `requirements.md`
@@ -38,12 +38,12 @@ Read everything in the project's `context/` directory:
 Also check for:
 - `CLAUDE.md` — Project configuration
 - `README.md` — Human documentation
-- `.claude/commands/` — Any commands defined
+- `.claude/skills/` — Any skills defined
 - `docs/` — Additional documentation
 
 ---
 
-### Step 3: Assess Against Checklist
+## Step 3: Assess Against Checklist
 
 Evaluate each area on a scale: **Complete | Partial | Missing | N/A**
 
@@ -98,7 +98,7 @@ Evaluate each area on a scale: **Complete | Partial | Missing | N/A**
 
 ---
 
-### Step 4: Calculate Readiness
+## Step 4: Calculate Readiness
 
 Based on the assessment, determine readiness for next phase:
 
@@ -117,7 +117,7 @@ Based on the assessment, determine readiness for next phase:
 
 ---
 
-### Step 5: Prioritize Gaps
+## Step 5: Prioritize Gaps
 
 List gaps in priority order:
 
@@ -146,7 +146,7 @@ Need answers before finalizing:
 
 ---
 
-### Step 6: Suggest Next Actions
+## Step 6: Suggest Next Actions
 
 Based on gaps, recommend specific actions:
 
@@ -166,7 +166,7 @@ Based on gaps, recommend specific actions:
 
 ---
 
-### Step 7: Present the Full Report
+## Step 7: Present the Full Report
 
 Format the complete assessment:
 

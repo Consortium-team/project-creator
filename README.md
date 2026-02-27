@@ -2,7 +2,7 @@
 
 **The challenge:** Creating an effective AI companion requires capturing tacit knowledge — requirements, constraints, architectural decisions, workflow patterns — that lives in your head. Without systematic extraction, companions start incomplete, context gets lost, and teams can't scale what individuals discover.
 
-**The solution:** Project Creator creates AI companions — Claude Code projects composed from reusable personas, capabilities, and domain knowledge. It uses reverse prompting to draw out your requirements through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, commands, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final companion — transforming ad-hoc setup into repeatable, scalable companion creation.
+**The solution:** Project Creator creates AI companions — Claude Code projects composed from reusable personas, capabilities, and domain knowledge. It uses reverse prompting to draw out your requirements through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final companion — transforming ad-hoc setup into repeatable, scalable companion creation.
 
 ---
 
@@ -45,7 +45,7 @@ Cowork tasks run in a separate environment where Claude doesn't automatically re
 
 ### Starting a Companion
 
-Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local commands, agents, and skills — and will make up its own versions when you reference them later.
+Your first message should tell Claude to orient itself as the project creator. Without this, Claude won't know about the local skills, agents, and rules — and will make up its own versions when you reference them later.
 
 **Example opening prompt:**
 
@@ -54,7 +54,7 @@ Your first message should tell Claude to orient itself as the project creator. W
 The key elements are:
 - **State what you're doing** — Give Claude the high-level goal
 - **Direct it to read `CLAUDE.md`** — This is the project configuration that defines how Project Creator works
-- **Direct it to read the `.claude` folder** — This is where commands (`/intake`, `/plan`, `/build`, etc.), agents, and skills live
+- **Direct it to read the `.claude` folder** — This is where skills (`/intake`, `/plan`, `/build`, etc.), agents, and rules live
 
 After Claude confirms it has oriented itself, you can use commands normally.
 
@@ -300,7 +300,7 @@ flowchart LR
         L["Library Materials"]
     end
 
-    subgraph Commands["Commands"]
+    subgraph Skills["Skills"]
         I["/intake"]
         RB["/read-book --library"]
         CTX["/contextualize"]
@@ -355,7 +355,7 @@ git remote add origin <your-repo-url>
 git push -u origin main
 ```
 
-Project-creator itself tracks its own changes separately. Changes to companion-kits, commands, or tracking files are committed in the project-creator repo, not in companion repos.
+Project-creator itself tracks its own changes separately. Changes to companion-kits, skills, or tracking files are committed in the project-creator repo, not in companion repos.
 
 ---
 
@@ -451,7 +451,7 @@ For companions that already exist. Analyzes what's there and fills gaps through 
 /onboard acme-corp/existing-api          # Analyze a specific companion
 ```
 
-Claude analyzes existing files (CLAUDE.md, README, commands, etc.), reports what's FOUND vs MISSING, asks before filling gaps, and uses reverse prompting to capture what's missing.
+Claude analyzes existing files (CLAUDE.md, README, skills, etc.), reports what's FOUND vs MISSING, asks before filling gaps, and uses reverse prompting to capture what's missing.
 
 **Prerequisite:** Clone/copy the companion into `companions/[client]/[name]/` first.
 
@@ -603,21 +603,26 @@ project-creator/
 │           ├── capabilities/
 │           └── library/         # Book notes by subject
 ├── .claude/
-│   ├── commands/
-│   │   ├── companion.md
-│   │   ├── configure.md
-│   │   ├── intake.md
-│   │   ├── onboard.md
-│   │   ├── process.md
-│   │   ├── gaps.md
-│   │   ├── checkpoint.md
-│   │   ├── read-book.md         # Kindle Cloud Reader integration
-│   │   ├── contextualize.md     # Library-to-companion reference
-│   │   ├── plan.md              # Cultivation phase
-│   │   └── build.md             # Shaping phase
-│   └── agents/
-│       ├── ticket-executor.md
-│       └── ticket-verifier.md
+│   ├── skills/                  # All workflow skills
+│   │   ├── companion-standards/ # Reference skill (preloaded into agents)
+│   │   ├── companion/           # Manage companion context
+│   │   ├── configure/           # First-run setup
+│   │   ├── intake/              # Reverse prompting for new companions
+│   │   ├── onboard/             # Analyze existing companions
+│   │   ├── process/             # Handle external inputs
+│   │   ├── gaps/                # Assessment checkpoint
+│   │   ├── checkpoint/          # Session capture
+│   │   ├── read-book/           # Kindle Cloud Reader integration
+│   │   ├── contextualize/       # Library-to-companion reference
+│   │   ├── plan/                # Cultivation phase
+│   │   └── build/               # Shaping phase
+│   ├── agents/
+│   │   ├── ticket-executor.md
+│   │   ├── ticket-verifier.md
+│   │   ├── companion-auditor.md
+│   │   └── project-analyzer.md
+│   ├── rules/                   # Path-scoped conventions
+│   └── hooks/                   # Session rules
 ├── templates/                   # Companion archetypes (emerges over time)
 ├── docs/                        # Documentation and guides
 └── companions/                  # Companion working directories (git-ignored)
@@ -654,7 +659,7 @@ companions/client/companion/
 ├── README.md           # Documentation
 ├── build-progress.md   # Build execution log
 └── .claude/
-    └── commands/       # Companion-specific commands
+    └── skills/         # Companion-specific skills
 ```
 
 ---

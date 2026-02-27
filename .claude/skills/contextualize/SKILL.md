@@ -1,13 +1,20 @@
+---
+name: contextualize
+description: >
+  Use when the user wants to generate a companion-specific reference file from existing org library
+  notes. Processes library notes chapter-by-chapter, filtering and reframing concepts for the
+  current companion's needs. Requires a book with complete or in-progress library notes.
+disable-model-invocation: true
+argument-hint: "[book-search-term] [client/companion]"
+---
+
 # /contextualize — Generate Companion-Specific Reference from Library Notes
 
 Take existing companion-neutral library notes and generate a reference file tailored to a specific companion — without re-reading the book.
 
-## Usage
-
-```
-/contextualize [book-search-term]                    # Search org library, use current companion
-/contextualize [book-search-term] [client/companion]  # Override companion
-```
+**Usage:**
+- `/contextualize [book-search-term]` — Search org library, use current companion
+- `/contextualize [book-search-term] [client/companion]` — Override companion
 
 **Examples:**
 ```
@@ -16,13 +23,9 @@ Take existing companion-neutral library notes and generate a reference file tail
 /contextualize king consortium.team/writing-companion # Override companion
 ```
 
-## Argument: $ARGUMENTS
-
 ---
 
-## Instructions
-
-### Step 0: Determine Companion and Organization
+## Step 0: Determine Companion and Organization
 
 1. Parse `$ARGUMENTS`:
    - Last argument may be a companion path (contains `/`) — if so, use it as the companion
@@ -48,7 +51,7 @@ Step 0 Complete. Collected values:
 
 ---
 
-### Step 1: Find the Library Book
+## Step 1: Find the Library Book
 
 1. Scan all `metadata.yaml` files in `[library_dir]/**/metadata.yaml`
 2. For each metadata file, match the search term against:
@@ -96,7 +99,7 @@ Step 1 Complete. Found book:
 
 ---
 
-### Step 2: Validate Book Status
+## Step 2: Validate Book Status
 
 Read the `metadata.yaml` for the matched book and check the `status` field:
 
@@ -127,7 +130,26 @@ Use /read-book --library [org] to populate it first.
 
 ---
 
-### Step 3: Load Companion Context
+### Compliance Checkpoint 1
+
+**Before proceeding to contextualization, confirm book and companion are correct:**
+```
+Ready to contextualize.
+
+Book: [title] by [author]
+Status: [status]
+Companion: [client/companion]
+Purpose: [companion purpose from context]
+
+This will create a companion-specific reference file filtered for [companion]'s needs.
+Proceed?
+```
+
+**STOP and wait for user confirmation.**
+
+---
+
+## Step 3: Load Companion Context
 
 Read the following files from the companion directory:
 
@@ -155,7 +177,7 @@ Step 3 Complete. Companion context loaded:
 
 ---
 
-### Step 4: Check for Existing Reference File
+## Step 4: Check for Existing Reference File
 
 1. Search `[companion_dir]/reference/` for any file that appears to be a contextualization of this book
    - Match by author name, book title, or presence of the book's metadata in the file header
@@ -180,7 +202,7 @@ Step 3 Complete. Companion context loaded:
 
 ---
 
-### Step 5: Create the Reference File
+## Step 5: Create the Reference File
 
 1. Suggest filename: `[author-lastname]-[short-title]-companion-notes.md`
    - Confirm with user or let them override
@@ -202,7 +224,7 @@ Step 3 Complete. Companion context loaded:
 
 ---
 
-### Step 6: Contextualize Chapter by Chapter
+## Step 6: Contextualize Chapter by Chapter
 
 **This is the core loop. Process one chapter at a time.**
 
@@ -255,9 +277,13 @@ Read the library `notes.md` and identify all chapters.
    ```
 7. **STOP and wait for the user to say "next"** — Do not continue without user confirmation
 
+### Compliance Checkpoint 2
+
+**After each chapter, this is a mandatory pause point.** Do not proceed to the next chapter until the user explicitly says "next" or equivalent. This gives the user review and pacing control.
+
 ---
 
-### Step 7: Companion Synthesis
+## Step 7: Companion Synthesis
 
 After all chapters are processed, write a master synthesis section at the end of the reference file:
 
@@ -300,7 +326,29 @@ Replace the progress marker with a completion marker:
 
 ---
 
-### Step 8: Record the Contextualization
+### Compliance Checkpoint 3
+
+**After writing the synthesis, present it to the user for review:**
+```
+Contextualization complete.
+
+**Top frameworks extracted:**
+1. [Framework 1]
+2. [Framework 2]
+3. [Framework 3]
+
+**Gaps identified:**
+- [Gap 1]
+- [Gap 2]
+
+Does the synthesis look accurate? Any frameworks to add or re-prioritize?
+```
+
+**STOP and wait for user confirmation before recording.**
+
+---
+
+## Step 8: Record the Contextualization
 
 1. Add a row to `[companion_dir]/context/decisions.md`:
    ```

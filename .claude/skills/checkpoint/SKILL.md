@@ -1,21 +1,21 @@
+---
+name: checkpoint
+description: >
+  Use when ending a work session to preserve progress. Captures session state, updates tracking,
+  and prepares handoff notes for context recovery.
+disable-model-invocation: true
+argument-hint: "[client/companion]"
+---
+
 # /checkpoint — Session Capture
 
 Capture session state before ending. Preserves progress across context boundaries.
 
-## Usage
-
-```
-/checkpoint                       # Use current companion
-/checkpoint [client/companion]   # Override for specific companion
-```
-
-## Argument: $ARGUMENTS
+**Usage:** `/checkpoint` or `/checkpoint [client/companion]`
 
 ---
 
-## Instructions
-
-### Step 1: Determine the Companion
+## Step 1: Determine the Companion
 
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
@@ -27,7 +27,7 @@ Capture session state before ending. Preserves progress across context boundarie
 
 ---
 
-### Step 2: Review the Session
+## Step 2: Review the Session
 
 Look back at what happened in this conversation:
 
@@ -49,7 +49,7 @@ Look back at what happened in this conversation:
 
 ---
 
-### Step 3: Summarize for the User
+## Step 3: Summarize for the User
 
 Present a session summary:
 
@@ -81,7 +81,7 @@ Does this capture the session accurately? Anything to add?
 
 ---
 
-### Step 4: Update Tracking Files
+## Step 4: Update Tracking Files
 
 After user confirms (or immediately if summary is accurate):
 
@@ -115,7 +115,7 @@ If any patterns, friction, or learnings emerged:
 
 ---
 
-### Step 5: Prepare Handoff Notes
+## Step 5: Prepare Handoff Notes
 
 Create notes that would help resume work, even with complete context loss:
 
@@ -146,7 +146,7 @@ Save these notes to `companions/[client]/[companion]/HANDOFF.md`
 
 ---
 
-### Step 6: Offer to Commit
+## Step 6: Offer to Commit
 
 If the project has a git repo:
 
@@ -167,7 +167,7 @@ If user agrees, stage and commit the changes.
 
 ---
 
-### Step 7: Final Confirmation
+## Step 7: Final Confirmation
 
 ```
 ## Checkpoint Complete

@@ -1,25 +1,27 @@
+---
+name: intake
+description: >
+  Use when starting requirements gathering for a new companion. Draws out requirements through
+  guided reverse prompting conversation. Discovers persona and capability fit through dialogue.
+disable-model-invocation: true
+argument-hint: "[persona] [client/companion]"
+---
+
 # /intake — New Companion Reverse Prompting
 
 Draw out companion requirements through guided conversation. Discovers which persona and capabilities fit through conversation.
 
-## Usage
-
-```
-/intake                           # Use current companion — discover persona through conversation
-/intake [client/companion]        # Override for specific companion
-/intake [persona]                 # Start with a known persona for current companion
-/intake [persona] [client/companion]   # Both persona and companion
-```
+**Usage:**
+- `/intake` — Use current companion, discover persona through conversation
+- `/intake [client/companion]` — Override for specific companion
+- `/intake [persona]` — Start with a known persona for current companion
+- `/intake [persona] [client/companion]` — Both persona and companion
 
 **Personas** accelerate intake with persona-specific questions. Available personas are in `companion-kits/public-kits/personas/` and `companion-kits/private-kits/[org]-companion-kit/personas/`.
 
-## Argument: $ARGUMENTS
-
 ---
 
-## Instructions
-
-### Step 1: Determine the Companion
+## Step 1: Determine the Companion
 
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
@@ -31,11 +33,18 @@ Draw out companion requirements through guided conversation. Discovers which per
 
 4. Verify the companion directory exists at `companions/[client]/[companion]/`
 
-**Determine the organization** from the client portion of the path (e.g., `consortium.team` from `consortium.team/my-companion`). This is used to search for org-specific personas, capabilities, and library materials.
+**Determine the organization** from the client portion of the path (e.g., `consortium.team` from `consortium.team/my-companion`).
+
+**Build the accessible kits list** by reading `tracking/permissions.yaml`:
+- Always include: `companion-kits/public-kits/`
+- Always include: `companion-kits/private-kits/[client]-companion-kit/` (derived from companion path)
+- Also include each kit in `always_accessible_private_kits` from permissions.yaml (e.g., `companion-kits/private-kits/[kit-name]/`)
+
+This list determines where to search for personas, capabilities, and library materials throughout intake.
 
 ---
 
-### Step 2: Check Existing Context
+## Step 2: Check Existing Context
 
 Read any existing context files in `companions/[client]/[companion]/context/`:
 - `requirements.md`
@@ -52,13 +61,13 @@ We can continue from here, or start fresh. What would you prefer?
 
 ---
 
-### Step 2b: Load Persona (if specified)
+## Step 2b: Load Persona (if specified)
 
 If `$ARGUMENTS` contains a persona name, search for it:
 
-1. **Search for the persona** in both public and org-private directories:
+1. **Search for the persona** across all accessible kit directories (from Step 1):
    - `companion-kits/public-kits/personas/[persona]/PERSONA.md`
-   - `companion-kits/private-kits/[org]-companion-kit/personas/[persona]/PERSONA.md`
+   - `companion-kits/private-kits/[kit]/personas/[persona]/PERSONA.md` for each kit in the accessible kits list
 
 2. **Read the persona's files:**
    - `PERSONA.md` — Identity, voice, key concepts
@@ -79,7 +88,7 @@ If `$ARGUMENTS` contains a persona name, search for it:
 
 ---
 
-### Step 3: Begin Reverse Prompting
+## Step 3: Begin Reverse Prompting
 
 **Your role:** Draw out what the user knows. Don't assume or generate requirements — extract them.
 
@@ -94,11 +103,11 @@ What problem does [companion] solve? Or put another way — why does this compan
 
 ---
 
-### Step 4: The Question Sequence
+## Step 4: The Question Sequence
 
 Work through these areas, but **adapt based on answers**. Don't mechanically go through a checklist — let the conversation flow naturally while ensuring coverage.
 
-**If a persona is loaded:** Weave the persona-specific questions from `intake-guide.md` into the flow below. Persona questions often provide better specificity for their domain. For example, a "writing-mentor" persona would ask about anchor types, mentors, and transformation levels — questions that the generic intake wouldn't know to ask.
+**If a persona is loaded:** Weave the persona-specific questions from `intake-guide.md` into the flow below. Persona questions often provide better specificity for their domain.
 
 **1. Purpose (start here)**
 - What problem does this solve?
@@ -134,15 +143,15 @@ Work through these areas, but **adapt based on answers**. Don't mechanically go 
 
 ---
 
-### Step 4b: Suggest Persona Match (if no persona was specified)
+## Step 4b: Suggest Persona Match (if no persona was specified)
 
 After covering the core questions (especially Purpose, Users, and The Quality), suggest which persona fits best.
 
 **Scan available personas:**
 
-1. Read all PERSONA.md files from:
+1. Read all PERSONA.md files from all accessible kit directories (from Step 1):
    - `companion-kits/public-kits/personas/*/PERSONA.md`
-   - `companion-kits/private-kits/[org]-companion-kit/personas/*/PERSONA.md` (if org is known)
+   - `companion-kits/private-kits/[kit]/personas/*/PERSONA.md` for each kit in the accessible kits list
 
 2. Compare the captured requirements against each persona's "When to Use" criteria.
 
@@ -164,15 +173,15 @@ After covering the core questions (especially Purpose, Users, and The Quality), 
 
 ---
 
-### Step 4c: Suggest Capabilities
+## Step 4c: Suggest Capabilities
 
 After the persona is identified (or if no persona fits):
 
 1. **Read the persona's `typical-capabilities.md`** for recommended capabilities.
 
-2. **Scan available capabilities:**
+2. **Scan available capabilities** across all accessible kit directories (from Step 1):
    - `companion-kits/public-kits/capabilities/*/CAPABILITY.md`
-   - `companion-kits/private-kits/[org]-companion-kit/capabilities/*/CAPABILITY.md` (if any exist)
+   - `companion-kits/private-kits/[kit]/capabilities/*/CAPABILITY.md` for each kit in the accessible kits list
 
 3. **Suggest capabilities based on conversation:**
    ```
@@ -195,12 +204,12 @@ After the persona is identified (or if no persona fits):
 
 ---
 
-### Step 4d: Suggest Library Materials
+## Step 4d: Suggest Library Materials
 
-If the organization has a library (`companion-kits/private-kits/[org]-companion-kit/library/`):
+Scan libraries across all accessible kits (from Step 1) that have a `library/` directory:
 
 1. **Scan library entries:**
-   - Read `metadata.yaml` files in `companion-kits/private-kits/[org]-companion-kit/library/**/metadata.yaml`
+   - Read `metadata.yaml` files in `companion-kits/private-kits/[kit]/library/**/metadata.yaml` for each kit in the accessible kits list
 
 2. **Match by subject tags and persona relevance:**
    - Compare library entry `subjects` and `related_personas` against the companion being created
@@ -221,7 +230,7 @@ If the organization has a library (`companion-kits/private-kits/[org]-companion-
 
 ---
 
-### Step 5: Push for Specificity
+## Step 5: Push for Specificity
 
 When answers are vague, push deeper:
 
@@ -236,7 +245,7 @@ When answers are vague, push deeper:
 
 ---
 
-### Step 6: Capture as You Go
+## Step 6: Capture as You Go
 
 After each major area is covered, write to the appropriate context file:
 
@@ -290,7 +299,7 @@ Decisions made during companion intake.
 
 ---
 
-### Step 7: Summarize and Confirm
+## Step 7: Summarize and Confirm
 
 After covering the key areas:
 
@@ -321,7 +330,7 @@ After covering the key areas:
 
 ---
 
-### Step 8: Suggest Next Steps
+## Step 8: Suggest Next Steps
 
 ```
 Context captured for [companion].
@@ -342,4 +351,4 @@ Next steps:
 - **It's okay to not know** — "Not sure yet" is valuable information
 - **Capture decisions** — Why something was decided matters as much as what
 - **The quality matters** — What makes this distinct is often the key insight
-- **Discover, don't prescribe** — Let the conversation reveal which persona and capabilities fit, rather than forcing a pre-selected type
+- **Discover, don't prescribe** — Let the conversation reveal which persona and capabilities fit
