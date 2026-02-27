@@ -30,8 +30,12 @@ Fires at startup AND after every context compaction. This is the only mechanism 
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "cat .claude/hooks/session-start.md"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/hooks/session-start.md"
+          }
+        ]
       }
     ]
   }
@@ -64,8 +68,12 @@ Fires before every response. Use sparingly — this adds tokens to every turn.
   "hooks": {
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "cat .claude/hooks/per-turn.md"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/hooks/per-turn.md"
+          }
+        ]
       }
     ]
   }
@@ -91,8 +99,12 @@ Fires before context compaction. Use to preserve state that would otherwise be l
   "hooks": {
     "PreCompact": [
       {
-        "type": "command",
-        "command": "cat .claude/hooks/pre-compact.md"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/hooks/pre-compact.md"
+          }
+        ]
       }
     ]
   }
@@ -115,8 +127,12 @@ Save current task state to a checkpoint file if mid-workflow.
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "cat .claude/hooks/session-start.md"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/hooks/session-start.md"
+          }
+        ]
       }
     ]
   },
@@ -128,6 +144,64 @@ Save current task state to a checkpoint file if mid-workflow.
 ```
 
 Start with SessionStart only. Add other hooks when specific failure patterns emerge.
+
+### Hook Matchers
+
+Hooks support regex matchers to fire only for specific tools or patterns:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Reminder: follow code-standards skill for all file writes'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Hooks in Skill/Agent Frontmatter
+
+Hooks can also be defined in skill or agent frontmatter, scoping them to that skill's or agent's execution only:
+
+```yaml
+---
+name: my-agent
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      type: command
+      command: "echo 'Reminder: no destructive commands'"
+---
+```
+
+### SessionEnd Hook
+
+Fires when a session ends. Use for cleanup tasks, state persistence, or notifications:
+
+```json
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Session ending — ensure checkpoint is saved'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ---
 
@@ -408,6 +482,39 @@ Wait for user decision. Do NOT act without explicit approval.
 
 **Key properties**: LOW freedom. Exact steps, exact phase structure. Compliance checkpoints between phases. The orchestrator is a procedure, not guidance.
 
+**Full skill frontmatter reference:**
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `name` | string | Skill identifier |
+| `description` | string | When this skill applies — the dispatch mechanism (be specific, slightly "pushy") |
+| `disable-model-invocation` | boolean | `true` = only user can trigger via `/name` |
+| `user-invocable` | boolean | `false` = reference skill only (preloaded into agents) |
+| `argument-hint` | string | Parameter description shown in UI (e.g., `"client-name"`) |
+| `allowed-tools` | list | Restrict which tools are available during skill execution |
+| `model` | string | Override model for this skill's execution |
+| `context` | string | `fork` runs skill in isolated agent context |
+| `agent` | string | Agent to delegate to when skill is invoked |
+| `hooks` | object | Hooks that fire during this skill's execution |
+
+**String substitutions in orchestrator prompts:**
+
+```yaml
+---
+name: write-followup
+argument-hint: "client-name"
+---
+# Write Follow-up for $ARGUMENTS
+
+Client name: $1
+# $ARGUMENTS = full argument string
+# $ARGUMENTS[0] = first positional argument
+# $1 = shorthand for $ARGUMENTS[0]
+# ${CLAUDE_SESSION_ID} = current session ID
+```
+
+**Dynamic context injection:** Use `` !`command` `` to inject shell command output at load time (e.g., `` !`cat tracking/current-companion.md` `` to inject the current companion name).
+
 ### Reference Skill Template
 
 Copy-paste ready template for an authoritative standards document preloaded into agents.
@@ -525,7 +632,9 @@ Agents live in `.claude/agents/`.
 name: ticket-executor
 description: Implements a single ticket from the build plan
 model: opus
-allowed_tools:
+permissionMode: acceptEdits
+maxTurns: 200
+tools:
   - Read
   - Write
   - Edit
@@ -536,6 +645,24 @@ skills:
   - code-standards
 ---
 ```
+
+**Full agent frontmatter reference:**
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `name` | string | Agent identifier |
+| `description` | string | What the agent does — shown in agent selection UI |
+| `model` | string | `haiku`, `sonnet`, or `opus` |
+| `tools` | list | Whitelist of allowed tools (overrides inherited set) |
+| `disallowedTools` | list | Blacklist of specific tools to exclude from inherited set |
+| `skills` | list | Reference skills preloaded as full text at agent startup |
+| `permissionMode` | string | `default`, `acceptEdits`, or `bypassPermissions` |
+| `maxTurns` | number | Maximum agentic turns before stopping |
+| `mcpServers` | list | MCP servers available to this agent |
+| `memory` | boolean | Whether agent has access to auto-memory |
+| `background` | boolean | `true` for background execution |
+| `isolation` | string | `worktree` for git worktree isolation |
+| `hooks` | object | Hooks scoped to this agent's execution |
 
 ### Prompt Building Guidance
 
@@ -585,11 +712,20 @@ CONSTRAINTS:
 
 ### Tool Scoping
 
-Always whitelist tools explicitly. An agent with no tools can only think — it can't read files, write code, or search. Common tool sets:
+Agents inherit all tools by default. Use `tools:` to restrict to a whitelist, or `disallowedTools:` to exclude specific tools. Be intentional about tool access. Common tool sets:
 
-- **Read-only agent** (verifier): Read, Glob, Grep
-- **Implementation agent** (executor): Read, Write, Edit, Glob, Grep, Bash
-- **Research agent** (explorer): Read, Glob, Grep, WebSearch, WebFetch
+- **Read-only agent** (verifier): `tools: [Read, Glob, Grep]`
+- **Implementation agent** (executor): `tools: [Read, Write, Edit, Glob, Grep, Bash]`
+- **Research agent** (explorer): `tools: [Read, Glob, Grep, WebSearch, WebFetch]`
+
+Alternative approach using `disallowedTools:` — when you want most tools but need to exclude a few:
+
+```yaml
+disallowedTools:
+  - Write
+  - Edit
+  - Bash
+```
 
 ---
 
@@ -691,7 +827,23 @@ Game design companions emphasize the preloading pattern for framework-heavy anal
 | No hooks at all | Instructions forgotten after compaction | Add SessionStart hook with critical rules |
 | Workflow procedures in CLAUDE.md | Steps get skipped or reordered | Move to skills with compliance checkpoints |
 | High-freedom skills for generative tasks | Output varies wildly between invocations | Lower the freedom level; add output schemas |
-| Agents without tool whitelists | Agent says it completed work but no files created | Always specify `allowed_tools` |
+| Agents with unscoped tool access | Agent modifies files it shouldn't (e.g., verifier writing fixes) | Use `tools:` to whitelist or `disallowedTools:` to exclude |
 | Telling agents to read preloaded skills | Wasted tokens, confused context | Trust `skills:` frontmatter means preloaded |
 | CLAUDE.md over 200 lines | Later sections get less attention | Apply deletion test; distribute to skills/rules/hooks |
 | Same enforcement for all tasks | Structured extraction over-constrained; generative tasks under-constrained | Match enforcement to task type |
+
+---
+
+## External Resources
+
+**Official Anthropic documentation:**
+- Skills: https://docs.anthropic.com/en/docs/claude-code/skills
+- Subagents: https://docs.anthropic.com/en/docs/claude-code/sub-agents
+- Hooks: https://docs.anthropic.com/en/docs/claude-code/hooks
+
+**Tooling:**
+- **skill-creator** (Anthropic's `anthropics/skills` repo, Apache 2.0) — Handles the mechanics of building individual skills: intent capture, writing, eval, and description optimization. Use after making architectural decisions with this capability. If installed in your project, find it at `.claude/skills/skill-creator/SKILL.md`.
+- `/agents` command — Interactive scaffolding for agent definition files.
+- `/hooks` command — Interactive scaffolding for hook configuration.
+
+**Framing:** These commands scaffold file structure. skill-creator handles writing and testing mechanics. This capability guides what goes in them — architectural decisions, reliability tier placement, and layer composition.

@@ -98,11 +98,27 @@ Example: The `write-followup` command needs all three layers. The email-writer a
 
 Hooks are shell scripts that fire deterministically on specific events. They bypass the system disclaimer that undermines CLAUDE.md authority. They are the only mechanism that survives context compaction automatically.
 
-**16 events available. Three key ones:**
+**17 events available. Three key ones:**
 
 - **SessionStart** — Fires at startup AND after every context compaction. Use for rules that must persist across the entire session regardless of compaction. This is the most important hook.
 - **UserPromptSubmit** — Fires on every user turn. Use for per-turn reinforcement of critical constraints.
 - **PreCompact** — Fires before context compaction. Use for preserving state that would otherwise be lost.
+
+**Complete event reference:**
+
+| Group | Events |
+|-------|--------|
+| Session | SessionStart, SessionEnd |
+| User | UserPromptSubmit |
+| Tool | PreToolUse, PostToolUse, PostToolUseFailure, PermissionRequest |
+| Compaction | PreCompact |
+| Subagent | SubagentStart, SubagentStop |
+| Completion | Stop, TaskCompleted, Notification |
+| Teamwork | TeammateIdle |
+| Config | ConfigChange |
+| Worktree | WorktreeCreate, WorktreeRemove |
+
+**Matchers:** Hook events support regex matchers to fire only for specific tools or patterns (e.g., a PreToolUse hook that only fires for `Write` or `Bash`). Hooks can also be defined in skill or agent frontmatter — not just in `settings.json`.
 
 **Three hook types:**
 
@@ -130,9 +146,28 @@ Skills are the recommended mechanism for workflows, commands, and authoritative 
 
 **Shared properties across all skill types:**
 
-- **Description is the dispatch mechanism.** A good description (clear about when the skill applies) improves activation by 20-50%. This is the single highest-leverage field in the frontmatter.
+- **Description is the dispatch mechanism.** A good description (clear about when the skill applies) improves activation by 20-50%. Be specific and slightly "pushy" — under-triggering is more common than over-triggering. This is the single highest-leverage field in the frontmatter.
 - **Supporting files.** Skills can reference files one directory level deep. Keep skills under 500 lines.
 - **Three freedom levels:** High (guidance), Medium (structured workflows), Low (critical procedures with compliance checkpoints).
+
+**Skill frontmatter fields:**
+
+| Field | Purpose |
+|-------|---------|
+| `name` | Skill identifier |
+| `description` | When this skill applies — the dispatch mechanism |
+| `disable-model-invocation` | `true` = only user can trigger (via `/name`); Claude cannot invoke autonomously |
+| `user-invocable` | `false` = reference skill only (cannot be triggered by user or Claude directly) |
+| `argument-hint` | Parameter description shown in UI (e.g., `"client-name"`) |
+| `allowed-tools` | Restrict which tools are available when skill is active |
+| `model` | Override model for this skill's execution |
+| `context` | Execution context — `fork` runs skill in isolated agent context |
+| `agent` | Agent to delegate to when skill is invoked |
+| `hooks` | Hooks that fire during this skill's execution |
+
+**String substitutions in skills:** `$ARGUMENTS` (full argument string), `$ARGUMENTS[0]` / `$ARGUMENTS[1]` (positional args), `$1` / `$2` (shorthand positional), `${CLAUDE_SESSION_ID}` (current session ID).
+
+**Dynamic context injection:** Use `` !`command` `` syntax to inject the output of a shell command into the skill content at load time.
 
 Skills serve two fundamentally different roles — and conflating them is a common architectural mistake:
 
@@ -178,6 +213,17 @@ Reference skills are authoritative standards documents. They define *what good l
 
 **The freedom level rule**: Use LOW freedom for orchestrator skills (procedures that must execute exactly). Use HIGH or MEDIUM freedom for reference skills (guidance the agent applies with judgment to varied situations).
 
+#### Developing Skills
+
+Anthropic provides a **skill-creator** tool (in the `anthropics/skills` repo, Apache 2.0) that handles the mechanics of building and testing individual skills: intent capture, writing, eval, and description optimization.
+
+**Relationship to this capability:** skill-creator is a craftsman's tool for building individual skills. This capability is an architect's framework for deciding *what* to build and *where it fits*. Use them together:
+
+1. **Architectural decisions first** (this capability) — Is this an orchestrator, reference skill, or single skill? Which reliability tier? Does it need an agent?
+2. **Skill writing mechanics second** (skill-creator) — Write the skill content, test it, optimize the description.
+
+**Caution:** skill-creator doesn't know about the three-layer architecture. Don't let it guide you into a monolithic skill where an orchestrator + agent + reference skill would be more reliable.
+
 ### 3. Agents — The Isolation Layer
 
 Agents (subagents) provide context isolation. A subagent gets ONLY its prompt plus CLAUDE.md — no conversation history, no parent skills, no accumulated context. This isolation is both the strength and the constraint.
@@ -185,10 +231,32 @@ Agents (subagents) provide context isolation. A subagent gets ONLY its prompt pl
 **Key properties:**
 
 - **Build complete prompts.** Because subagents have no conversation context, every value they need must be in the prompt. Never pass placeholder values like `[PATH_FROM_STEP_1]`.
-- **Whitelist tools explicitly.** Agents get no tools by default. Omitting the tool list means the agent can't do its job.
+- **Scope tools deliberately.** Agents inherit all tools from the main conversation by default. Use `tools:` to restrict to a whitelist, or `disallowedTools:` to exclude specific tools. Either way, be intentional — don't leave tool access to the default when narrower scope would prevent mistakes.
 - **Prompt structure matters.** Definition-of-done goes FIRST (primacy effect). Critical constraints go LAST (recency effect). Supporting context goes in the middle.
 - **Model selection**: Haiku for search/retrieval, Sonnet for structured analysis, Opus for complex reasoning and generative tasks.
 - **Up to 7 parallel agents.** Cannot spawn sub-subagents (one level deep only).
+
+**Agent frontmatter fields:**
+
+| Field | Purpose | Reliability Hierarchy Note |
+|-------|---------|--------------------------|
+| `name` | Agent identifier | — |
+| `description` | What the agent does | — |
+| `model` | Model to use (haiku/sonnet/opus) | Match model to task complexity |
+| `tools` | Whitelist of allowed tools | Enforcement: restricts to only these tools |
+| `disallowedTools` | Blacklist of denied tools | Enforcement: excludes specific tools from inherited set |
+| `skills` | Reference skills preloaded at startup | Tier 2 reliability — high attention context |
+| `permissionMode` | `default`, `acceptEdits`, `bypassPermissions` | Enforcement: controls tool approval behavior |
+| `maxTurns` | Maximum agentic turns before stopping | Enforcement: prevents runaway execution |
+| `mcpServers` | MCP servers available to this agent | — |
+| `memory` | Whether agent has access to auto-memory | — |
+| `background` | `true` for background execution (agent teams) | Practical note: parallel background agents may hit permission contention |
+| `isolation` | `worktree` for git worktree isolation | — |
+| `hooks` | Hooks scoped to this agent's execution | Tier 1 reliability — deterministic enforcement within agent |
+
+**Scaffolding:** Use `/agents` and `/hooks` interactive commands to scaffold agent and hook files. These commands create the file structure; this capability guides what goes in them.
+
+**CLI-defined agents:** Agents can also be defined via the `--agents` JSON flag for ad-hoc or CI use cases. Agents support resume capability — a stopped agent can be continued with its full context preserved.
 
 **When to use agents:**
 
@@ -267,6 +335,22 @@ Token efficiency is a cross-cutting concern that affects all configuration surfa
 
 ---
 
+## External Resources
+
+**Official Anthropic documentation:**
+- Skills: https://docs.anthropic.com/en/docs/claude-code/skills
+- Subagents: https://docs.anthropic.com/en/docs/claude-code/sub-agents
+- Hooks: https://docs.anthropic.com/en/docs/claude-code/hooks
+
+**Tooling:**
+- **skill-creator** (`anthropics/skills` repo) — Handles skill writing, testing, and description optimization. See "Developing Skills" above.
+- `/agents` command — Interactive scaffolding for agent definition files.
+- `/hooks` command — Interactive scaffolding for hook configuration.
+
+**Relationship:** The interactive commands (`/agents`, `/hooks`) scaffold file structure. skill-creator handles writing and testing mechanics. This capability guides architectural decisions — what to build, where it fits in the reliability hierarchy, and how layers compose.
+
+---
+
 ## Anti-Patterns
 
 | Anti-Pattern | Why It Fails | What to Do Instead |
@@ -274,7 +358,7 @@ Token efficiency is a cross-cutting concern that affects all configuration surfa
 | Everything in CLAUDE.md | Wrong mechanism for most things; attention degrades with length | Distribute across the reliability hierarchy |
 | Adding emphasis for procedural compliance | Emphasis helps atomic rules, not multi-step procedures | Use low-freedom skills with compliance checkpoints |
 | Negative framing ("NEVER do X") | Activates the prohibited behavior by requiring the model to represent it | Positive framing ("do Y instead") |
-| Omitting tool whitelists on agents | Agent can't perform its task; fails silently or improvises | Always whitelist tools explicitly |
+| Leaving agent tool scope as default without consideration | Agent has access to tools it shouldn't (e.g., Write on a verifier) | Use `tools:` to whitelist or `disallowedTools:` to exclude deliberately |
 | Telling agents to read preloaded skills | Skill is already injected; reading it wastes tokens and confuses context | Trust that `skills:` frontmatter means preloaded |
 | Long CLAUDE.md with workflow details | Workflows compete with identity for attention; both lose | Move workflows to skills |
 | Repeating instructions that keep failing | Repetition doesn't fix structural misplacement | Move the instruction to a higher-reliability tier |
@@ -283,6 +367,7 @@ Token efficiency is a cross-cutting concern that affects all configuration surfa
 | Agents without preloaded reference skills | Agent improvises standards (tone, format, structure) instead of deferring to authoritative source | Add reference skills to agent `skills:` frontmatter for cross-cutting standards |
 | Skipping validation before agent dispatch | Agent receives bad inputs (wrong paths, missing files); wastes tokens discovering errors | Orchestrator validates all inputs and confirms prerequisites before invoking agent |
 | Missing the human gate | Orchestrator presents agent output but acts on it without waiting for user approval | Always gate: present output → wait for explicit user decision → then act |
+| Using `bypassPermissions` without testing | Security risk; hard to debug when agent takes unexpected actions | Start with `default` or `acceptEdits`; escalate only after thorough testing |
 
 ---
 

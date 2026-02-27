@@ -1,6 +1,9 @@
 ---
 name: ticket-executor
 description: Executes a single implementation ticket with full context
+model: opus
+permissionMode: acceptEdits
+maxTurns: 200
 tools:
   - Read
   - Write
@@ -8,7 +11,6 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
 ---
 
 # Ticket Executor Agent

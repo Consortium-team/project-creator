@@ -1,4 +1,16 @@
 {
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/hooks/session-start.md"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "input=$(cat); cwd=$(echo \"$input\" | jq -r '.workspace.current_dir'); companion=$(cat \"$cwd/tracking/current-companion.md\" 2>/dev/null | tr -d '\\n'); git_branch=$(git -C \"$cwd\" -c core.fileMode=false branch --show-current 2>/dev/null); if [ -n \"$companion\" ] && [ -n \"$git_branch\" ]; then echo \"project-creator | $companion [$git_branch]\"; elif [ -n \"$companion\" ]; then echo \"project-creator | $companion\"; else echo \"project-creator\"; fi"
