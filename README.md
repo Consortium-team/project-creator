@@ -4,6 +4,8 @@
 
 **The solution:** Project Creator creates AI companions — Claude Code projects composed from reusable personas, capabilities, and domain knowledge. It uses reverse prompting to draw out your requirements through structured conversation, then generates the Claude Code configuration artifacts: `CLAUDE.md`, `README.md`, skills, and agents. You seed requirements, cultivate them into an implementation plan, then shape the final companion — transforming ad-hoc setup into repeatable, scalable companion creation.
 
+**What's new:** [v2.0 — Three-Layer Architecture](docs/release-notes.md) — Companions are now more reliable and token-efficient. Instructions are distributed across a reliability hierarchy so the right guidance shows up at the right time. New companions get this automatically; existing companions can upgrade via `/onboard`.
+
 ---
 
 ## Prerequisites
