@@ -13,6 +13,8 @@ Set, show, or create the current companion context.
 
 **Usage:** `/companion`, `/companion [client/companion]`, `/companion new [client/companion]`
 
+## Argument: $ARGUMENTS
+
 ---
 
 ## Parse Arguments
@@ -25,7 +27,56 @@ Parse `$ARGUMENTS` to determine the mode:
 
 ---
 
-## Mode 1: No Arguments (Show)
+## Instructions
+
+Check if your context contains a `[companion-context-hook]` block.
+If yes → follow the **With Hook Results** path below.
+If no → follow the **Without Hook Results (Fallback)** path below.
+
+---
+
+## With Hook Results
+
+The hook has already performed all filesystem operations. Your job is to format the output and handle any remaining LLM-only actions (like editing projects-log.md).
+
+### Mode: show, Status: success
+
+Format and display the listing from hook data:
+
+- If `companions` shows `(none)`: display "No companions yet. Create one with: `/companion new [client/companion]`"
+- Otherwise: display `current_companion` and the companion listing
+
+### Mode: set, Status: success
+
+- Confirm the companion was set to `companion_path`
+- If `previous_companion` is different from `companion_path`, mention the switch
+- If they're the same, confirm it's already current
+
+### Mode: set, Status: error
+
+- If `error_type: companion_not_found`: display error message, show `available_companions` list, suggest `/companion new` if they meant to create
+- If `error_type: invalid_path`: display the error message with usage help
+- If `error_type: filesystem_error`: display the error message
+
+### Mode: new, Status: success
+
+1. **Edit `tracking/projects-log.md`**: Add the `new_row` value to the Active Projects table (one Edit call)
+2. **Confirm creation**: Display the companion path, companion kit, actions taken, and next steps (`/intake`, `/process`)
+3. If there are warnings, display them
+
+### Mode: new, Status: error
+
+- Display the error `message`
+- If `error_type: missing_path` or `invalid_path`: show usage help
+- If `error_type: already_exists`: suggest using `/companion [path]` to set as current
+
+---
+
+## Without Hook Results (Fallback)
+
+Use this path when the `[companion-context-hook]` block is not present in your context. Perform all filesystem operations directly.
+
+### Mode 1: No Arguments (Show)
 
 1. **Read current companion** from `tracking/current-companion.md`
    - If file contains a companion path (like `acme-corp/api-service`), that's the current companion
@@ -56,9 +107,7 @@ Parse `$ARGUMENTS` to determine the mode:
      /companion new [client/companion]
    ```
 
----
-
-## Mode 2: Set Current (client/companion argument, no "new")
+### Mode 2: Set Current (client/companion argument, no "new")
 
 1. **Verify the companion exists** at `companions/[client]/[companion]/`
    - If it doesn't exist, report the error and list available companions
@@ -75,9 +124,7 @@ Parse `$ARGUMENTS` to determine the mode:
    Current companion set to: [client/companion]
    ```
 
----
-
-## Mode 3: Create New (starts with "new")
+### Mode 3: Create New (starts with "new")
 
 1. **Parse the companion path** from the rest of the arguments
    - Expected format: `new client/companion`
