@@ -56,7 +56,7 @@ Setup: `/configure` (first-run) and `/companion` (manage companion context).
 
 Session hygiene: `/brief` (session orientation) and `/checkpoint` (session capture).
 
-Ecosystem: `/capture-capability`, `/apply-capability`, `/ask` (cross-companion communication).
+Ecosystem: `/capture-capability`, `/apply-capability`, `/ask`, `/start-huddle`, `/join-huddle` (cross-companion communication).
 
 ## Agents
 

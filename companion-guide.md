@@ -59,6 +59,8 @@ How to use Project Creator to build AI companions through reverse prompting. Thi
 /capture-capability client [name] [description]   Extract capability to client kit
 /apply-capability [name] [target]                 Audit target against capability, remediate gaps
 /ask [companion-name] [topic]                     Compose structured handoff to another companion
+/start-huddle [topic] Participants: [...] Channel: #ch (optional)   Start multi-companion Slack huddle
+/join-huddle [thread-link] Channel: #ch (optional)                  Join an existing Slack huddle
 ```
 
 ---
@@ -315,4 +317,4 @@ When reverse prompting: one question at a time. Challenge vagueness. Push for co
 
 ---
 
-**Last Updated**: March 4, 2026
+**Last Updated**: March 15, 2026
