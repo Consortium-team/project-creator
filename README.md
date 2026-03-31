@@ -158,6 +158,14 @@ irm https://claude.ai/install.ps1 | iex
 
 You'll see text scroll by — that's normal. The installer is downloading and setting up Claude Code.
 
+**If the PowerShell command above doesn't work**, you can install using Windows Package Manager instead. Paste this into PowerShell and press Enter:
+
+```powershell
+winget install Anthropic.ClaudeCode
+```
+
+Note: winget does not auto-update — you'll need to run `winget upgrade Anthropic.ClaudeCode` periodically.
+
 3. After installation completes, **close PowerShell and go back to Git Bash** — you'll use Git Bash for the rest of this guide.
 
 In Git Bash, verify Claude Code is installed:
