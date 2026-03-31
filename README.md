@@ -147,31 +147,32 @@ The first time you run `claude`, you'll be asked to log in to your Anthropic acc
 <details>
 <summary><strong>Windows</strong></summary>
 
-Paste this into Git Bash and press Enter:
+Claude Code must be installed from **PowerShell**, not Git Bash. (The Git Bash install script doesn't support Windows.)
 
-```bash
-curl -fsSL https://claude.ai/install.sh | bash
+1. Click the **Start** button, type `PowerShell`, and click **Windows PowerShell**
+2. Paste this into PowerShell and press Enter:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
 ```
 
-You'll see a lot of text scroll by — that's normal. The installer is downloading and setting up Claude Code.
+You'll see text scroll by — that's normal. The installer is downloading and setting up Claude Code.
 
-**Important — look for a line that starts with `echo`.** Near the end of the output, you may see a line that looks something like this:
+3. After installation completes, **close PowerShell and go back to Git Bash** — you'll use Git Bash for the rest of this guide.
 
-```
-echo 'export PATH="/c/Users/yourname/.claude/bin:$PATH"' >> ~/.bashrc
-```
-
-The exact text will be different for you — that's fine. **You need to run this line.** Copy the entire `echo '...'` line, paste it into Git Bash, and press Enter. This tells your computer where to find Claude Code. If you skip this step, the Companion Workbench and Knowledge Workbench won't be able to find Claude later.
-
-After running the `echo` line, **close your Git Bash window and open a new one** (Start menu, type `Git Bash`). This is needed for the change to take effect.
-
-In the new Git Bash window, verify Claude Code is installed:
+In Git Bash, verify Claude Code is installed:
 
 ```bash
 claude --version
 ```
 
-You should see a version number. **If you see "command not found"**, go back and make sure you ran the `echo` line and opened a new Git Bash window.
+You should see a version number. **If you see "command not found"**, Claude Code may not be on your Git Bash PATH yet. Run this in Git Bash:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
+
+Then **close Git Bash and open a new one** (Start menu, type `Git Bash`). Try `claude --version` again.
 
 The first time you run `claude`, you'll be asked to log in to your Anthropic account. Follow the prompts in your browser to complete this.
 
