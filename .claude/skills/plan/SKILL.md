@@ -150,7 +150,104 @@ Before I create the implementation spec, I have a few questions:
 
 ---
 
-### Step 5: Create the Implementation Specification
+### Step 5: Boundary Declaration (companion_init)
+
+Before creating the implementation spec, capture the companion's authority boundary. This produces `context/boundary-declaration.yaml` — a required pre-build gate.
+
+**Reverse-prompt the practitioner through 5 questions, one at a time:**
+
+1. **What does this companion own?** — Domains (swim lanes) and artifacts (file-level ownership with lifecycle: create | maintain | archive | full)
+2. **What does it NOT own?** — Explicit exclusions with named owner and boundary rationale
+3. **Who does it talk to?** — Communication topology: companion, direction, protocol (ask | handoff | advisor-request | event), artifact shape, frequency
+4. **What state does it read/write?** — Read paths with access mode, write paths with coordination requirements
+5. **Does it handle secrets or sensitive data?** — Boolean flag; if true, capture secret types, storage, rotation, data sensitivity, and SA routing scope
+
+**Ask each question individually.** Wait for the answer before asking the next. Use the practitioner's domain knowledge — do not infer answers from requirements.
+
+After all 5 questions are answered, generate the boundary declaration:
+
+**Write to:** `companions/[client]/[companion]/context/boundary-declaration.yaml`
+
+```yaml
+---
+type: companion-boundary-declaration
+companion_id: "[client]/[companion-name]"
+declared_by: "project-creator"
+declared_date: "[ISO 8601]"
+event: companion_init
+version: 1
+ecosystem_role: "[meta | domain | service | advisor]"  # optional
+---
+
+owns:
+  domains:
+    - domain: "[domain label]"
+      description: "[1 sentence]"
+  artifacts:
+    - artifact_type: "[artifact type name]"
+      location: "[relative path pattern]"
+      lifecycle_owner: "[create | maintain | archive | full]"
+
+does_not_own:
+  - domain: "[domain label]"
+    owner: "[companion name that owns this]"
+    boundary_note: "[1 sentence — why excluded]"
+
+talks_to:
+  - companion: "[client]/[companion-name]"
+    direction: "[inbound | outbound | bidirectional]"
+    protocol: "[ask | handoff | advisor-request | event]"
+    artifact_shape: "[artifact type exchanged]"
+    frequency: "[on-demand | per-session | per-event | scheduled]"
+
+state_access:
+  reads:
+    - path: "[relative path or glob]"
+      companion_owner: "[companion that owns this path]"
+      access_mode: "[full-scan | targeted-lookup | reference-check]"
+  writes:
+    - path: "[relative path or glob]"
+      write_mode: "[create | append | overwrite]"
+      requires_coordination: "[none | ea-choreography | owner-approval]"
+
+handles_secrets: false
+# security_profile: populated only when handles_secrets: true
+```
+
+**Validate before proceeding:**
+
+| Rule | Check |
+|------|-------|
+| `owns.domains` has at least 1 entry | Required |
+| `does_not_own` has at least 1 entry | Required |
+| Every `does_not_own` entry has non-empty `owner` | Required |
+| `handles_secrets: true` has non-empty `security_profile` | Required when true |
+
+If validation fails, report what's missing and ask the practitioner to fill the gaps. Do not proceed to the implementation spec with an invalid boundary declaration.
+
+**Security routing:** When `handles_secrets: true`, note in the output that TA classification review and SA implementation review are needed. This informs ticket planning.
+
+```
+## Boundary Declaration Complete
+
+Generated: context/boundary-declaration.yaml
+- Domains owned: [N]
+- Exclusions declared: [N]
+- Communication channels: [N]
+- State paths: [N reads, N writes]
+- Secrets flag: [true/false]
+- Security routing: [none | TA + SA review needed]
+
+Validation: PASSED
+```
+
+**Progressive formality note:** String fields (domain names, artifact types, secret types) are free-text. Do not constrain to enums — ecosystem evidence will tighten these later.
+
+---
+
+### Step 6: Create the Implementation Specification
+
+> **Note:** The boundary declaration from Step 5 informs the spec's Architecture and Constraints sections. Reference it when defining scope boundaries and component responsibilities.
 
 Once context is complete, create the spec document.
 
@@ -283,7 +380,7 @@ status: planned
 
 ---
 
-### Step 6: Break Down into Tickets
+### Step 7: Break Down into Tickets
 
 Create tickets for each discrete piece of work.
 
@@ -336,7 +433,7 @@ Create tickets for each discrete piece of work.
 
 ---
 
-### Step 7: Validate All Tickets
+### Step 8: Validate All Tickets
 
 Before finalizing, verify each ticket against the companion-standards ticket schema:
 
@@ -368,6 +465,7 @@ Would you like me to revise these tickets before finalizing?
 
 ```
 Phase 2 Complete. Collected values:
+- Boundary declaration: context/boundary-declaration.yaml -- VALID
 - Implementation spec: [relative path to spec file]
 - Total tickets: [N]
 - S-sized tickets: [N]
@@ -382,7 +480,7 @@ Proceeding to Phase 3.
 
 ## Phase 3: Present -- Review Plan and Gate on Approval
 
-### Step 8: Present Plan for Review
+### Step 9: Present Plan for Review
 
 Before finalizing, present the complete plan:
 
@@ -429,13 +527,13 @@ Questions:
    *(If you're not using Linear, say "skip Linear")*
 ```
 
-**Wait for user approval before proceeding to Step 9.**
+**Wait for user approval before proceeding to Step 10.**
 
 ---
 
 ## Phase 4: Gate -- Write to Linear and Finalize
 
-### Step 9: Write to Linear
+### Step 10: Write to Linear
 
 After user approves:
 
@@ -550,7 +648,7 @@ Proceeding to final report.
 
 ---
 
-### Step 10: Final Report
+### Step 11: Final Report
 
 After tickets are created:
 
@@ -578,6 +676,7 @@ After tickets are created:
 - After ticket [N] completes, tickets [X, Y] can run in parallel
 
 **Local files created:**
+- `context/boundary-declaration.yaml` -- Authority boundary (companion_init)
 - `docs/plans/YYYY-MM-DD-implementation-spec.md` -- Full specification
 - `docs/plans/tickets.yaml` -- Structured ticket data for /build
 - `docs/plans/build-progress.md` -- Progress tracking
@@ -594,7 +693,7 @@ Next steps:
 
 ---
 
-### Step 11: Update Tracking
+### Step 12: Update Tracking
 
 Update `tracking/projects-log.md`:
 - Change status from `seeding` to `cultivation`

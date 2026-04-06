@@ -91,6 +91,59 @@ Check `companions/[client]/[companion]/docs/plans/build-progress.md` for prior p
 
 ---
 
+### Step 3: Validate Boundary Declaration (Pre-Build Gate)
+
+Check for `companions/[client]/[companion]/context/boundary-declaration.yaml`. This file is produced by `/plan` Step 5 (companion_init event) and is a **mandatory pre-build gate**.
+
+**If file does not exist, STOP:**
+
+```
+## Build Blocked -- Missing Boundary Declaration
+
+No context/boundary-declaration.yaml found for [companion].
+
+This file captures the companion's authority boundary (what it owns, doesn't own,
+who it talks to, what state it reads/writes, and whether it handles secrets).
+
+It is generated during /plan (Step 5). Either:
+1. Re-run /plan to generate it
+2. Create it manually following the companion_init schema
+
+Build cannot proceed without a valid boundary declaration.
+```
+
+**If file exists, validate:**
+
+| Rule | Check |
+|------|-------|
+| `owns.domains` has at least 1 entry | Required |
+| `does_not_own` has at least 1 entry | Required |
+| Every `does_not_own` entry has non-empty `owner` | Required |
+| `handles_secrets: true` has non-empty `security_profile` | Required when true |
+
+**If validation fails, STOP:**
+
+```
+## Build Blocked -- Invalid Boundary Declaration
+
+context/boundary-declaration.yaml exists but has validation errors:
+- [list each problem]
+
+Fix the boundary declaration or re-run /plan Step 5 to regenerate it.
+```
+
+**If validation passes:**
+
+```
+Boundary declaration: VALID
+- Domains owned: [N]
+- Exclusions: [N]
+- Communication channels: [N]
+- Secrets: [true/false]
+```
+
+---
+
 **Compliance Checkpoint -- Phase 1 Complete:**
 
 ```
@@ -101,6 +154,7 @@ Phase 1 Complete. Collected values:
 - Linear parent: [linear_parent_issue value]
 - Total tickets: [N]
 - Schema validation: PASSED
+- Boundary declaration: VALID
 - Previously completed: [N] (if resuming, else 0)
 
 Proceeding to Phase 2.
@@ -110,7 +164,7 @@ Proceeding to Phase 2.
 
 ## Phase 2: Dispatch -- Build Execution Order and Execute Tickets
 
-### Step 3: Build Execution Order
+### Step 4: Build Execution Order
 
 From the tickets (yaml or Linear):
 
@@ -125,7 +179,7 @@ Create an ordered list of tickets to execute.
 
 ---
 
-### Step 4: Present Execution Plan and Confirm
+### Step 5: Present Execution Plan and Confirm
 
 Display the plan for user review:
 
@@ -183,11 +237,11 @@ Proceeding to ticket execution.
 
 ---
 
-### Step 5: Execute Tickets Sequentially
+### Step 6: Execute Tickets Sequentially
 
 For each ticket in the execution order:
 
-#### 5a. Announce the Ticket
+#### 6a. Announce the Ticket
 
 ```
 ---
@@ -195,7 +249,7 @@ For each ticket in the execution order:
 ---
 ```
 
-#### 5b. Read Full Ticket Details
+#### 6b. Read Full Ticket Details
 
 **From tickets.yaml:**
 - Title, description, acceptance criteria
@@ -209,7 +263,7 @@ Use `mcp__linear__linear_getIssueById` with the ticket ID to get:
 - Acceptance criteria
 - Any comments with additional context
 
-#### 5b-ii. Update Linear Status to In Progress
+#### 6b-ii. Update Linear Status to In Progress
 
 If the ticket has a `linear_id`, update its status to "In Progress":
 
@@ -221,11 +275,11 @@ If the ticket has a `linear_id`, update its status to "In Progress":
 Ticket [#]: [Title] -- Linear status -> In Progress
 ```
 
-#### 5c. Invoke Ticket Executor Agent
+#### 6c. Invoke Ticket Executor Agent
 
 **This step uses the Task tool to spawn a real subagent. Do NOT simulate or reason about what the agent would do.**
 
-**Step 5c-i: Read the agent definition**
+**Step 6c-i: Read the agent definition**
 
 Read `.claude/agents/ticket-executor.md`. Extract from frontmatter:
 - `model:` -- the model to use (e.g., opus)
@@ -234,7 +288,7 @@ Read `.claude/agents/ticket-executor.md`. Extract from frontmatter:
 
 The executor agent has `skills: [companion-standards]` in its frontmatter. This means companion-standards is preloaded into the agent automatically. Do NOT include instructions telling the agent to "read" or "load" the companion-standards skill -- it is already injected.
 
-**Step 5c-ii: Build the complete prompt**
+**Step 6c-ii: Build the complete prompt**
 
 Construct the full prompt with ALL actual values filled in. No placeholders.
 
@@ -303,33 +357,33 @@ Return EXACTLY this format:
 - [any problems]
 ```
 
-**Step 5c-iii: Show the prompt to the user**
+**Step 6c-iii: Show the prompt to the user**
 
 Display the constructed prompt so the user can verify all values are correct.
 
-**Step 5c-iv: Dispatch via Task tool**
+**Step 6c-iv: Dispatch via Task tool**
 
 ```
 Task tool call:
   subagent_type: general-purpose
   model: [from agent frontmatter, e.g., "opus"]
   description: "Execute ticket [#]: [short title]"
-  prompt: [the complete prompt from step 5c-ii]
+  prompt: [the complete prompt from step 6c-ii]
 ```
 
 Wait for the Task tool to return the executor's report.
 
-#### 5d. Invoke Ticket Verifier Agent
+#### 6d. Invoke Ticket Verifier Agent
 
 **Same pattern: real Task tool dispatch, not simulation.**
 
-**Step 5d-i: Read the agent definition**
+**Step 6d-i: Read the agent definition**
 
 Read `.claude/agents/ticket-verifier.md`. Extract `model:` from frontmatter (e.g., sonnet).
 
 The verifier agent also has `skills: [companion-standards]` preloaded. Do NOT include instructions telling the agent to "read" or "load" the skill.
 
-**Step 5d-ii: Build the verifier prompt**
+**Step 6d-ii: Build the verifier prompt**
 
 ```
 You are the ticket-verifier agent. You verify that a ticket was correctly implemented. You do NOT make changes -- only observe and report.
@@ -353,7 +407,7 @@ You are the ticket-verifier agent. You verify that a ticket was correctly implem
 
 ## Executor's Report
 
-[PASTE the executor's actual report from Step 5c]
+[PASTE the executor's actual report from Step 6c]
 
 ## Instructions
 
@@ -379,7 +433,7 @@ You are the ticket-verifier agent. You verify that a ticket was correctly implem
 - [specific problems]
 ```
 
-**Step 5d-iii: Dispatch via Task tool**
+**Step 6d-iii: Dispatch via Task tool**
 
 ```
 Task tool call:
@@ -389,7 +443,7 @@ Task tool call:
   prompt: [the complete verifier prompt]
 ```
 
-#### 5e. Orchestrator File-Existence Check (MANDATORY)
+#### 6e. Orchestrator File-Existence Check (MANDATORY)
 
 **After the verifier returns, the orchestrator MUST independently verify that output files exist.**
 
@@ -422,7 +476,7 @@ Retrying with explicit instructions...
 
 Then retry (see 5f).
 
-#### 5f. Handle Results
+#### 6f. Handle Results
 
 Based on verifier recommendation AND orchestrator file check:
 
@@ -435,9 +489,9 @@ Based on verifier recommendation AND orchestrator file check:
   5. Max 2 retries, then escalate
 - **ESCALATE:** Stop and present issues to user
 
-#### 5g. Update Local Progress (ONLY after file-existence confirmed)
+#### 6g. Update Local Progress (ONLY after file-existence confirmed)
 
-**NEVER update build-progress.md until Step 5e confirms files exist.**
+**NEVER update build-progress.md until Step 6e confirms files exist.**
 
 After each ticket completes AND files are confirmed:
 
@@ -489,7 +543,7 @@ Proceeding to ticket [#+1].
 
 ## Phase 3: Present -- Complete Build and Report
 
-### Step 6: Handle Failures
+### Step 7: Handle Failures
 
 If executor or verifier fails:
 
@@ -540,7 +594,7 @@ Handle each option:
 
 ---
 
-### Step 7: Complete Build
+### Step 8: Complete Build
 
 After all tickets complete (or are skipped):
 
@@ -599,7 +653,7 @@ Build complete. Final values:
 
 ## Phase 4: Gate -- Update Reference Projects
 
-### Step 8: Update Reference Projects (if persona was used)
+### Step 9: Update Reference Projects (if persona was used)
 
 After the build completes, check whether this project was created from a persona:
 
@@ -695,7 +749,7 @@ Never trust a single source of truth:
 2. **Verifier confirms** files meet criteria -> but maybe it also simulated
 3. **Orchestrator checks** files exist on disk -> this is the hard truth
 
-All three must pass. The orchestrator file check (Step 5e) is the final gate.
+All three must pass. The orchestrator file check (Step 6e) is the final gate.
 
 ### Stay Lightweight
 
@@ -750,6 +804,8 @@ Never assume a ticket completed successfully:
 |-----------|----------|
 | No tickets.yaml | "Run /plan first" |
 | tickets.yaml schema invalid | "Schema validation failed -- list problems, stop" |
+| Missing boundary-declaration.yaml | "Run /plan to generate boundary declaration (Step 5)" |
+| Invalid boundary-declaration.yaml | "List validation errors, block build" |
 | project_path doesn't exist | "Project directory not found -- check path" |
 | Executor timeout | Retry once, then escalate |
 | Verifier returns RETRY | Retry with feedback, max 2 times |

@@ -88,6 +88,15 @@ Evaluate each area on a scale: **Complete | Partial | Missing | N/A**
 | Alternatives considered | | |
 | Open questions tracked | | |
 
+**Authority & Boundaries** *(informs /plan Step 5 — boundary declaration)*
+| Item | Status | Evidence |
+|------|--------|----------|
+| What this companion owns (domains, artifacts) | | |
+| What it explicitly does NOT own | | |
+| Who it communicates with (companions, direction) | | |
+| What state it reads/writes | | |
+| Whether it handles secrets or sensitive data | | |
+
 **Context**
 | Item | Status | Evidence |
 |------|--------|----------|
@@ -104,8 +113,10 @@ Based on the assessment, determine readiness for next phase:
 
 **Seeding Phase Completion:**
 - Essential: Purpose, Users, Core Requirements, Key Constraints
-- Important: Success Criteria, Decisions, Context
+- Important: Success Criteria, Decisions, Context, Authority & Boundaries
 - Nice-to-have: Full constraint documentation, all edge cases
+
+**Note:** Authority & Boundaries is rated Important, not Essential, because `/plan` Step 5 will reverse-prompt the practitioner through these questions directly. But having thought about ownership and communication topology beforehand makes that conversation much faster.
 
 ```
 ## Seeding Readiness: [X]%
@@ -159,6 +170,10 @@ Based on gaps, recommend specific actions:
 
 **Questions to answer:**
 - [Question that would unlock multiple gaps]
+
+**Boundary declaration prep** *(if Authority & Boundaries gaps exist):*
+- `/plan` Step 5 will ask: What does this companion own? What doesn't it own? Who does it talk to? What state does it read/write? Does it handle secrets?
+- If these topics haven't surfaced during seeding, use `/intake` to explore them before running `/plan`
 
 **Ready to do now:**
 - [Action that doesn't require more context]
