@@ -25,7 +25,7 @@ Orchestrate sub-agents to execute tickets and build the project.
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
 3. If no companion is set:
-   ```
+   ```text
    No companion set. Use /companion to set or create one first.
    ```
 
@@ -39,7 +39,7 @@ Store the companion path (e.g., `acme-corp/api-service`) and the full directory 
 
 1. Check for `companions/[client]/[companion]/docs/plans/tickets.yaml`
 2. If not exists, STOP:
-   ```
+   ```text
    No tickets.yaml found for [companion].
    Run /plan first to create tickets.
    ```
@@ -69,7 +69,7 @@ Also verify top-level fields exist:
 - `spec_file` -- must point to a file that exists
 
 **If validation fails, STOP:**
-```
+```text
 ## tickets.yaml Schema Validation Failed
 
 Missing or malformed fields:
@@ -97,7 +97,7 @@ Check for `companions/[client]/[companion]/context/boundary-declaration.yaml`. T
 
 **If file does not exist, STOP:**
 
-```
+```text
 ## Build Blocked -- Missing Boundary Declaration
 
 No context/boundary-declaration.yaml found for [companion].
@@ -123,7 +123,7 @@ Build cannot proceed without a valid boundary declaration.
 
 **If validation fails, STOP:**
 
-```
+```text
 ## Build Blocked -- Invalid Boundary Declaration
 
 context/boundary-declaration.yaml exists but has validation errors:
@@ -134,7 +134,7 @@ Fix the boundary declaration or re-run /plan Step 5 to regenerate it.
 
 **If validation passes:**
 
-```
+```text
 Boundary declaration: VALID
 - Domains owned: [N]
 - Exclusions: [N]
@@ -146,7 +146,7 @@ Boundary declaration: VALID
 
 **Compliance Checkpoint -- Phase 1 Complete:**
 
-```
+```text
 Phase 1 Complete. Collected values:
 - Companion: [client/companion]
 - Project path: [project_path value]
@@ -183,7 +183,7 @@ Create an ordered list of tickets to execute.
 
 Display the plan for user review:
 
-```
+```text
 ## Build Plan: [companion]
 
 **Source:** [tickets.yaml | Linear]
@@ -218,7 +218,7 @@ If `linear_parent_issue` exists in tickets.yaml, update it to "In Progress":
 1. Get the "In Progress" state ID from workflow states (using `mcp__linear__linear_getWorkflowStates`)
 2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [in_progress_state_id]`
 
-```
+```text
 Build started -- [linear_parent_issue] -> In Progress
 ```
 
@@ -226,7 +226,7 @@ Build started -- [linear_parent_issue] -> In Progress
 
 **Compliance Checkpoint -- Execution Plan Confirmed:**
 
-```
+```text
 Execution plan confirmed by user. Values:
 - Tickets in order: [list ticket IDs in execution order]
 - Parallel opportunities: [list any parallel groups]
@@ -243,7 +243,7 @@ For each ticket in the execution order:
 
 #### 6a. Announce the Ticket
 
-```
+```text
 ---
 ## Executing Ticket [#]/[total]: [Title]
 ---
@@ -271,7 +271,7 @@ If the ticket has a `linear_id`, update its status to "In Progress":
 2. Find the state ID for "In Progress"
 3. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [in_progress_state_id]`
 
-```
+```text
 Ticket [#]: [Title] -- Linear status -> In Progress
 ```
 
@@ -292,7 +292,7 @@ The executor agent has `skills: [companion-standards]` in its frontmatter. This 
 
 Construct the full prompt with ALL actual values filled in. No placeholders.
 
-```
+```text
 You are the ticket-executor agent. Your job is to implement a single ticket.
 
 ## Project Context
@@ -363,7 +363,7 @@ Display the constructed prompt so the user can verify all values are correct.
 
 **Step 6c-iv: Dispatch via Task tool**
 
-```
+```text
 Task tool call:
   subagent_type: general-purpose
   model: [from agent frontmatter, e.g., "opus"]
@@ -385,7 +385,7 @@ The verifier agent also has `skills: [companion-standards]` preloaded. Do NOT in
 
 **Step 6d-ii: Build the verifier prompt**
 
-```
+```text
 You are the ticket-verifier agent. You verify that a ticket was correctly implemented. You do NOT make changes -- only observe and report.
 
 ## Project Directory
@@ -435,7 +435,7 @@ You are the ticket-verifier agent. You verify that a ticket was correctly implem
 
 **Step 6d-iii: Dispatch via Task tool**
 
-```
+```text
 Task tool call:
   subagent_type: general-purpose
   model: [from agent frontmatter, e.g., "sonnet"]
@@ -460,7 +460,7 @@ For EACH output file in the ticket's `output_files` list:
 - If file is missing or empty -> FAIL (regardless of what executor/verifier claimed)
 
 **If any output file is missing:**
-```
+```text
 ## Orchestrator Check FAILED
 
 Ticket [#]: [Title]
@@ -506,7 +506,7 @@ Update `tickets.yaml`:
 This enables recovery if context is lost mid-build.
 
 Also report progress:
-```
+```text
 Ticket [#]/[total] complete: [Title]
 - Files confirmed on disk: [list]
 - Issues resolved: [list, if any]
@@ -519,7 +519,7 @@ If the ticket has a `linear_id`, update its status to "Done":
 1. Get the "Done" state ID from workflow states (cached from earlier lookup)
 2. Update the issue: `mcp__linear__linear_updateIssue` with `id: [linear_id]` and `stateId: [done_state_id]`
 
-```
+```text
 Ticket [#]: [Title] -- Linear status -> Done
 ```
 
@@ -527,7 +527,7 @@ Ticket [#]: [Title] -- Linear status -> Done
 
 **Compliance Checkpoint -- After each ticket:**
 
-```
+```text
 Ticket [#]/[total] checkpoint:
 - Title: [title]
 - Executor status: [COMPLETED/PARTIAL/BLOCKED]
@@ -565,7 +565,7 @@ Implementation was attempted but doesn't pass verification.
 
 After max retries, pause and escalate:
 
-```
+```text
 ## Build Paused
 
 **Failed ticket:** [Title] (#[N])
@@ -598,7 +598,7 @@ Handle each option:
 
 After all tickets complete (or are skipped):
 
-```
+```text
 ## Build Complete: [companion]
 
 **Tickets completed:** [N]/[total]
@@ -631,7 +631,7 @@ If `linear_parent_issue` exists, update it to "Done":
 1. Get the "Done" state ID from workflow states (cached from earlier lookup)
 2. Update the parent issue: `mcp__linear__linear_updateIssue` with `id: [linear_parent_issue]` and `stateId: [done_state_id]`
 
-```
+```text
 Build complete -- [linear_parent_issue] -> Done
 ```
 
@@ -639,7 +639,7 @@ Build complete -- [linear_parent_issue] -> Done
 
 **Compliance Checkpoint -- Phase 3 Complete (Build Summary):**
 
-```
+```text
 Build complete. Final values:
 - Companion: [client/companion]
 - Tickets completed: [N]/[total]
@@ -716,7 +716,7 @@ After the build completes, check whether this project was created from a persona
    ```
 
 4. **Report the update:**
-   ```
+   ```text
    Updated reference-projects.md for the [persona] persona with [companion] as a new reference implementation.
    ```
 
