@@ -2,7 +2,6 @@
 name: project-analyzer
 description: Analyzes a native Claude Code project for conversion into a companion
 model: opus
-permissionMode: default
 maxTurns: 100
 tools:
   - Read

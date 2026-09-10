@@ -2,7 +2,6 @@
 name: ticket-verifier
 description: Independently verifies ticket completion without making changes
 model: sonnet
-permissionMode: default
 maxTurns: 50
 tools:
   - Read

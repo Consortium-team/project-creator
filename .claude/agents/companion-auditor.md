@@ -2,7 +2,6 @@
 name: companion-auditor
 description: Health-checks an existing companion against current standards
 model: sonnet
-permissionMode: default
 maxTurns: 50
 tools:
   - Read

@@ -2,7 +2,6 @@
 name: ticket-executor
 description: Executes a single implementation ticket with full context
 model: opus
-permissionMode: acceptEdits
 maxTurns: 200
 tools:
   - Read
