@@ -54,7 +54,7 @@ project-creator/
 
 Setup: `/configure` (first-run) and `/companion` (manage companion context).
 
-Session hygiene: `/brief` (session orientation) and `/checkpoint` (session capture).
+Session hygiene: `/brief` (session orientation), `/checkpoint` (session capture) and `/retro` (retro log of a session to `tracking/retros/`).
 
 Ecosystem: `/capture-capability`, `/apply-capability`, `/ask`, `/start-huddle`, `/join-huddle` (cross-companion communication).
 

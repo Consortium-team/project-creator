@@ -51,6 +51,10 @@ How to use Project Creator to build AI companions through reverse prompting. Thi
 /brief [client/companion]                         Brief for specific companion
 /checkpoint                                       Capture session state
 /checkpoint [client/companion]                    Checkpoint specific companion
+/retro                                            Retro log of the current session → tracking/retros/
+/retro [client/companion]                         Retro for specific companion
+/retro --since [time] [--until time]              Retro of a time window (several sessions)
+/retro --session [uuid]                           Retro of an earlier session
 ```
 
 ### Ecosystem
@@ -134,6 +138,7 @@ A typical companion build spans 3-10 sessions. You might:
 - `/gaps` reveals missing constraints, `/intake` to draw them out through questions, then `/checkpoint`
 - `/plan` consolidates everything into a spec with tickets, ready for `/build`
 - `/build` dispatches agents to execute tickets, updates Linear, produces the companion
+- After a session worth learning from (a long intake, a hard build), `/retro` writes a retro log: your prompts verbatim, Claude's questions quoted exactly, and what worked, what didn't and insights
 
 The loop is deliberate. Each command reads the current companion's context files, so later commands build on earlier ones. `/checkpoint` externalizes session state so nothing is lost.
 
@@ -154,6 +159,7 @@ The goal is extraction, not generation. The user has tacit knowledge about what 
 | Reference material needs synthesis | `/contextualize` | Transforms raw reference into companion-specific guidance |
 | Need to assess completeness | `/gaps` | Compares current context against companion standards, surfaces what's missing |
 | End of session | `/checkpoint` | Captures decisions, open questions, and next steps |
+| Learning from a session | `/retro` | Writes a retro log to `tracking/retros/`: prompts verbatim, questions quoted exactly, what worked, what didn't, insights. `/checkpoint` records state; `/retro` records how the session went |
 
 **The quality extraction pattern:** Raw material (conversations, documents, books) contains a "quality" — the portable thing that makes this companion distinct. Seeding draws it out; it doesn't invent it.
 

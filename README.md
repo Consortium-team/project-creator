@@ -701,6 +701,7 @@ Capture enough context that a well-configured Claude Code project can be generat
 | `/process` | Handle external inputs (transcripts, docs) |
 | `/gaps` | Assessment checkpoint |
 | `/checkpoint` | Session capture |
+| `/retro` | Retro log of a session |
 | `/read-book` | Read and annotate a book via Kindle Cloud Reader |
 | `/contextualize` | Generate companion-specific reference from library notes |
 
@@ -960,6 +961,21 @@ Checks captured context against what's needed for a complete companion definitio
 
 Run before ending a session to preserve progress across context boundaries.
 
+### `/retro` — Session Retro Log
+
+Writes a retro log of a session to `tracking/retros/`. It records every prompt you gave, exactly as written. It summarizes attachments and long pastes, and summarizes each response. Every question Claude asked you is quoted exactly. It ends with an analysis: what worked, what didn't, and insights for the skills and future intakes. `/checkpoint` records where a companion stands; `/retro` records how the session went.
+
+| Usage | What It Does |
+|-------|--------------|
+| `/retro` | Retro of the current session, for the current companion |
+| `/retro [client/companion]` | Name the companion the session was about |
+| `/retro --since 2026-10-28T14:00 [--until ...]` | A time window, spanning several sessions |
+| `/retro --session [uuid]` | A specific earlier session |
+
+- A script condenses the session transcript (`.claude/skills/retro/scripts/session_transcript.py`), and Claude reads all of it before writing
+- `tracking/` is git-ignored, so retros stay local
+- To give a companion its own `/retro` that writes to its committed `docs/retros/`, apply the consortium.team kit's `session-retro` capability
+
 ### `/read-book` — Read and Annotate a Book
 
 Reads a book through Kindle Cloud Reader, taking structured notes in batches of 10 page-flips. Two modes: **companion mode** produces companion-specific notes; **library mode** produces comprehensive, companion-neutral notes for the org library.
@@ -1094,6 +1110,7 @@ companions/client/companion/
 | Have meeting notes or transcripts | `/process` |
 | Want to see what's missing | `/gaps` |
 | Ending a work session | `/checkpoint` |
+| Learning from a session that went well (or didn't) | `/retro` |
 | Reading a book for the org library | `/read-book --library [org] [kindle-url]` |
 | Applying library notes to a companion | `/contextualize [search-term]` |
 | Reading a book directly for a companion | `/read-book [kindle-url]` |
