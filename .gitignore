@@ -27,9 +27,9 @@ project-ideas/
 # Each org directory can be independently version-controlled with its own git repo
 companion-kits/private-kits/
 
-# Reference projects in public personas - these reference private paths
+# Reference projects - these reference private companions, clients and paths
 # that won't exist for other users. Each user builds their own over time.
-companion-kits/public-kits/personas/*/reference-projects.md
+**/reference-projects.md
 
 # =============================================================================
 # LEGACY PROJECT TYPES (kept during migration, remove after confirmed)
@@ -112,3 +112,6 @@ Desktop.ini
 # ARCHIVE (optional - uncomment to exclude archived docs)
 # =============================================================================
 # docs/archive/
+
+# Playwright MCP browser artifacts
+.playwright-mcp/
