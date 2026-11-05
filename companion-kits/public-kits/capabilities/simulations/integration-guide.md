@@ -203,6 +203,24 @@ Contradictions found during simulation may challenge or refine the product hypot
 ### → Session Hygiene
 Simulation runs should be checkpointed. Patterns discovered during simulations (e.g., "state machine gaps are common at this phase") feed into `tracking/patterns-discovered.md` via `/checkpoint`.
 
+### Receiving Simulation Findings — Workflow
+
+After a simulation finishes (`docs/simulations/findings/[YYYY-MM-DD].md` written), route findings into the Context Ecosystem before any further work:
+
+1. **Decisions** — for every "Must Resolve Before Proceeding" item the user resolves, append a row to `context/decisions.md` (decision, rationale, alternatives considered, source = simulation date).
+2. **Constraints** — newly-discovered hard limits (technical, regulatory, organizational) go to `context/constraints.md`.
+3. **Questions** — anything still ambiguous becomes a row in `context/questions.md`, tagged with the simulation date so they can be revisited on re-run.
+4. **Hypothesis review** — contradictions go through Strategic Planning's **Evidence Check** (see `companion-kits/public-kits/capabilities/strategic-planning/integration-guide.md`); update `context/strategic/hypothesis.md` if a contradiction invalidates a prior assumption.
+5. **Checkpoint** — invoke `/checkpoint` to capture the simulation date, gap counts, and any cross-cutting patterns into `tracking/patterns-discovered.md`.
+
+**When to use which mechanism:**
+
+- Use **Evidence Check** when a finding challenges the product hypothesis or a strategic assumption (it belongs in `hypothesis.md`).
+- Use **/checkpoint** when a finding represents a generalizable pattern (it belongs in `patterns-discovered.md`).
+- Use direct context-file updates for concrete decisions/constraints/questions tied to this companion only.
+
+**Commit message template:** `simulation([YYYY-MM-DD]): route N findings into context — D=N C=N Q=N`.
+
 ---
 
 ## Common Pitfalls

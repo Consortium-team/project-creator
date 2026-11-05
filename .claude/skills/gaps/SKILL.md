@@ -20,7 +20,7 @@ Assess what's captured vs. what's needed for a complete project definition.
 1. If `$ARGUMENTS` contains a project path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current project
 3. If no project is set:
-   ```
+   ```text
    No companion set. Use /companion to set or create one first.
    ```
 
@@ -89,6 +89,7 @@ Evaluate each area on a scale: **Complete | Partial | Missing | N/A**
 | Open questions tracked | | |
 
 **Authority & Boundaries** *(informs /plan Step 5 — boundary declaration)*
+
 | Item | Status | Evidence |
 |------|--------|----------|
 | What this companion owns (domains, artifacts) | | |
@@ -118,7 +119,7 @@ Based on the assessment, determine readiness for next phase:
 
 **Note:** Authority & Boundaries is rated Important, not Essential, because `/plan` Step 5 will reverse-prompt the practitioner through these questions directly. But having thought about ownership and communication topology beforehand makes that conversation much faster.
 
-```
+```text
 ## Seeding Readiness: [X]%
 
 **Essential items:** [N]/[M] complete
@@ -132,7 +133,7 @@ Based on the assessment, determine readiness for next phase:
 
 List gaps in priority order:
 
-```
+```text
 ## Gaps (Prioritized)
 
 ### High Priority
@@ -161,7 +162,7 @@ Need answers before finalizing:
 
 Based on gaps, recommend specific actions:
 
-```
+```text
 ## Recommended Next Steps
 
 **To fill high-priority gaps:**
@@ -185,7 +186,7 @@ Based on gaps, recommend specific actions:
 
 Format the complete assessment:
 
-```
+```text
 # Gap Analysis: [project]
 
 ## Summary

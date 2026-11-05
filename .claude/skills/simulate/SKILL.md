@@ -24,7 +24,7 @@ Trace horizontal user journeys against context documents to catch integration ga
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
 3. If no companion is set:
-   ```
+   ```text
    No companion set. Use /companion to set or create one first.
    ```
 
@@ -80,7 +80,7 @@ For each journey, define:
 
 **Present to the user:**
 
-```
+```text
 ## Journeys to Simulate
 
 Based on the context, these are the key journeys:
@@ -97,7 +97,7 @@ Based on the context, these are the key journeys:
 
 **If previous simulations exist, also show:**
 
-```
+```text
 Previously simulated journeys:
 - [Journey] — last run [date], found [N] gaps ([M] resolved since)
 
@@ -118,7 +118,7 @@ For each selected journey, dispatch a parallel agent. Build the complete prompt 
 
 Each agent receives the same context files but traces a different journey.
 
-```
+```text
 Agent tool call (one per journey, all in parallel):
   subagent_type: general-purpose
   description: "[Journey name] simulation"
@@ -172,6 +172,9 @@ Agent tool call (one per journey, all in parallel):
     ## Undocumented Handoffs
     [transitions between features/systems that no document describes]
 
+    ## State Machine Gaps
+    [lifecycle transitions with no defined trigger or missing state-change documentation]
+
     Do NOT suggest solutions. Just identify the gaps. Be thorough and specific.
 ```
 
@@ -220,7 +223,7 @@ From the deduplicated findings, identify the **Top N** gaps (typically 5-10) tha
 
 Format and present the full report:
 
-```
+```text
 # Journey Simulation Findings — [client/companion]
 
 **Date:** [today's date]
@@ -269,7 +272,7 @@ Format and present the full report:
 ### 9a: Ensure Directory Structure
 
 Create if not exists:
-```
+```text
 docs/simulations/
 ├── journeys.md
 └── findings/
@@ -325,7 +328,7 @@ Persistent record of all journeys identified and simulated.
 
 ## Step 10: Summary and Next Steps
 
-```
+```text
 ## Simulation Complete
 
 **Saved to:**

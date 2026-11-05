@@ -25,7 +25,7 @@ Transform captured requirements into a structured specification and actionable t
 1. If `$ARGUMENTS` contains a companion path, use that
 2. Otherwise, read `tracking/current-companion.md` for the current companion
 3. If no companion is set:
-   ```
+   ```text
    No companion set. Use /companion to set or create one first.
    ```
 
@@ -56,7 +56,7 @@ Read everything available for the companion:
 - `docs/` -- Any additional documentation
 
 **Report what was found:**
-```
+```text
 ## Context Gathered for [companion]
 
 **Found:**
@@ -85,7 +85,7 @@ Before creating a plan, verify sufficient context exists for the companion.
 
 If critical gaps exist:
 
-```
+```text
 ## Not Ready for Planning
 
 Missing critical context:
@@ -104,7 +104,7 @@ Run `/gaps` for a full assessment, or continue with `/intake` to fill these gaps
 
 **Compliance Checkpoint -- Phase 1 Complete:**
 
-```
+```text
 Phase 1 Complete. Collected values:
 - Companion: [client/companion]
 - Project path: [project_path value]
@@ -140,7 +140,7 @@ Before creating the specification, ask questions about anything unclear or ambig
 
 Ask questions **one at a time** until you have enough clarity to write a solid spec. Don't proceed with ambiguity -- resolve it first.
 
-```
+```text
 Before I create the implementation spec, I have a few questions:
 
 1. [First question]
@@ -227,7 +227,7 @@ If validation fails, report what's missing and ask the practitioner to fill the 
 
 **Security routing:** When `handles_secrets: true`, note in the output that TA classification review and SA implementation review are needed. This informs ticket planning.
 
-```
+```text
 ## Boundary Declaration Complete
 
 Generated: context/boundary-declaration.yaml
@@ -449,7 +449,7 @@ Before finalizing, verify each ticket against the companion-standards ticket sch
 - [ ] Field names are snake_case (not camelCase)
 
 **Flag problems:**
-```
+```text
 ## Validation Issues
 
 **Ticket [N]: [Title]**
@@ -463,7 +463,7 @@ Would you like me to revise these tickets before finalizing?
 
 **Compliance Checkpoint -- Phase 2 Complete:**
 
-```
+```text
 Phase 2 Complete. Collected values:
 - Boundary declaration: context/boundary-declaration.yaml -- VALID
 - Implementation spec: [relative path to spec file]
@@ -484,7 +484,7 @@ Proceeding to Phase 3.
 
 Before finalizing, present the complete plan:
 
-```
+```text
 ## Implementation Plan: [companion]
 
 **Spec:** docs/plans/YYYY-MM-DD-implementation-spec.md
@@ -635,7 +635,7 @@ After user approves:
 
 **Compliance Checkpoint -- Phase 4 Complete:**
 
-```
+```text
 Phase 4 Complete. Collected values:
 - Linear parent issue: [TEAM-XX, or "skipped" if not using Linear]
 - Linear child issues: [list TEAM-XX IDs, or "skipped" if not using Linear]
@@ -652,7 +652,7 @@ Proceeding to final report.
 
 After tickets are created:
 
-```
+```text
 ## Plan Complete: [companion]
 
 **Spec:** docs/plans/YYYY-MM-DD-implementation-spec.md
