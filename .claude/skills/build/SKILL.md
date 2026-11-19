@@ -365,7 +365,7 @@ Display the constructed prompt so the user can verify all values are correct.
 
 ```
 Task tool call:
-  subagent_type: general-purpose
+  subagent_type: ticket-executor
   model: [from agent frontmatter, e.g., "opus"]
   description: "Execute ticket [#]: [short title]"
   prompt: [the complete prompt from step 6c-ii]
@@ -437,7 +437,7 @@ You are the ticket-verifier agent. You verify that a ticket was correctly implem
 
 ```
 Task tool call:
-  subagent_type: general-purpose
+  subagent_type: ticket-verifier
   model: [from agent frontmatter, e.g., "sonnet"]
   description: "Verify ticket [#]: [short title]"
   prompt: [the complete verifier prompt]
